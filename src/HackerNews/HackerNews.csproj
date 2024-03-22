@@ -11,8 +11,8 @@
 
     <ApplicationTitle>HackerNews</ApplicationTitle>
 
-    <ApplicationId>com.Minnick.HackerNews</ApplicationId>
-    <ApplicationIdGuid>da4c7bba-c5a8-4480-9feb-b4bd874144fb</ApplicationIdGuid>
+    <ApplicationId>com.companyname.HackerNews</ApplicationId>
+    <ApplicationIdGuid>798fbfba-db4d-4ded-84a8-1ddca9bbc26e</ApplicationIdGuid>
 
     <ApplicationVersion>1</ApplicationVersion>
 
