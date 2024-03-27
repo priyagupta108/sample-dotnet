@@ -21,7 +21,7 @@ jobs:
 
       - name: Install .NET MAUI Workload
         run: |
-          dotnet workload install maui
+          dotnet workload install maui --sdk-version 8.0.102
       - name: Restore NuGet
         run: |
           dotnet restore ./src
