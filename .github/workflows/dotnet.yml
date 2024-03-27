@@ -17,11 +17,11 @@ jobs:
       - name: Setup .NET v8.0
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: "8.0.102"
+          dotnet-version: "8.0.100"
 
       - name: Install .NET MAUI Workload
         run: |
-          dotnet workload install maui --sdk-version 8.0.102
+          dotnet workload install maui 
       - name: Restore NuGet
         run: |
           dotnet restore ./src
