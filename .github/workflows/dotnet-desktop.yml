@@ -3,7 +3,7 @@ name: Build, Pack, and Publish to GPR
 on:
   push:
     branches:
-      - main
+      - test
 
 jobs:
   build:
