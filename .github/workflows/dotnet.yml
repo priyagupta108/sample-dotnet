@@ -20,7 +20,7 @@ jobs:
 
       - name: Setup .NET  ${{ matrix.dotnet }} SDK
         id: setup-dotnet
-        uses: actions/setup-dotnet@v4
+        uses: priyagupta108/setup-dotnet@update-install-scripts
         with:
           dotnet-version: ${{ matrix.dotnet }}
 
