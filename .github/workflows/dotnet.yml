@@ -24,7 +24,7 @@ jobs:
 
       - name: Setup .NET  ${{ matrix.dotnet }} SDK
         id: setup-dotnet
-        uses: priyagupta108/setup-dotnet@install-scripts-update
+        uses: setup-actions-demo/setup-dotnet@eol-versions-removing
         with:
           dotnet-version: ${{ matrix.dotnet }}
 
