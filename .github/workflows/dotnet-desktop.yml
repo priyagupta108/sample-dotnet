@@ -39,17 +39,17 @@ on:
       - main
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        arch: [x64, arm64]
+        os: [macos-latest, macos-13]
     steps:
       - uses: actions/checkout@v4
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
-          architecture: ${{ matrix.arch }}
+          dotnet-version: 8.0.314
+      
 # jobs:
 #   build:
 #     runs-on: ubuntu-latest
