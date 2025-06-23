@@ -24,7 +24,7 @@ jobs:
 
       - name: Setup .NET  ${{ matrix.dotnet }} SDK
         id: setup-dotnet
-        uses: setup-actions-demo/setup-dotnet@eol-versions-removing
+        uses: setup-actions-demo/setup-dotnet@removes-eol-versions
         with:
           dotnet-version: ${{ matrix.dotnet }}
 
