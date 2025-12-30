@@ -97,7 +97,7 @@ jobs:
         uses: gowridurgad/setup-dotnet@workload-input
         with:
           dotnet-version: '6.0.x'
-          workloads: maui, aspire, wasm-tools
+          workloads: maui, aspire, wasm-tools, maui-windows
 
       - name: Show installed workloads(after)
         run: dotnet workload list
