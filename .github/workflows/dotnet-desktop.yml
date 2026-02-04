@@ -91,8 +91,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - uses: lmvysakh/setup-dotnet@FR_524_arch_support
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: | 
-            version: 8.0.x, arch: x64
-            version: 8.0.x, arch: x64
+           dotnet-version: 8.0.x
+          # dotnet-version: | 
+          #   version: 8.0.x, arch: x64
+          #   version: 8.0.x, arch: x64
       - run: dotnet --info
