@@ -92,5 +92,7 @@ jobs:
         uses: actions/checkout@v6
       - uses: lmvysakh/setup-dotnet@FR_524_arch_support
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: | 
+            version: 8.0.x, arch: x64
+            version: 8.0.x, arch: x64
       - run: dotnet --info
