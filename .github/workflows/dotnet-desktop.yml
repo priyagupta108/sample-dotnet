@@ -84,22 +84,27 @@ on:
  push:
 
 jobs:
-  dotnet-install-error:
-    runs-on: macos-latest
+  Architecture:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+            os: [macos-latest, ubuntu-latest, windows-latest]
+            arch: ['x64', 'arm64']
+
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - uses: actions/setup-dotnet@v5
-        with:
-         dotnet-version: | 
-                  8.0.x
-                  8.0.x
-      - run: dotnet --info
+      # - uses: actions/setup-dotnet@v5
+      #   with:
+      #    dotnet-version: | 
+      #             8.0.x
+      #             8.0.x
+      # - run: dotnet --info
 
       - uses: lmvysakh/setup-dotnet@support_architecture
         with:
-         Architecture : x68
+         Architecture : ${{ matrix.arch }}
          dotnet-version: | 
                   8.0.x
                   8.0.x
