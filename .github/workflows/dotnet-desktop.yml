@@ -99,6 +99,7 @@ jobs:
 
       - uses: lmvysakh/setup-dotnet@support_architecture
         with:
+         Architecture : x68
          dotnet-version: | 
                   8.0.x
                   8.0.x
