@@ -90,8 +90,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - uses: lmvysakh/setup-dotnet@FR_524_arch_support
-      - uses: actions/setup-dotnet@v4
+      - uses: lmvysakh/setup-dotnet@support_architecture
+      # - uses: actions/setup-dotnet@v4
         with:
            dotnet-version: 8.0.x
           # dotnet-version: | 
