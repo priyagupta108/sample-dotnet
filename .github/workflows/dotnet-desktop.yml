@@ -92,13 +92,15 @@ jobs:
         uses: actions/checkout@v6
       - uses: actions/setup-dotnet@v5
         with:
-         dotnet-version: '8.0.x'
-
+         dotnet-version: | 
+                  8.0.x
+                  8.0.x
       - run: dotnet --info
 
       - uses: lmvysakh/setup-dotnet@support_architecture
-     
         with:
-           dotnet-version: '8.0.x'
+         dotnet-version: | 
+                  8.0.x
+                  8.0.x
 
       - run: dotnet --info
