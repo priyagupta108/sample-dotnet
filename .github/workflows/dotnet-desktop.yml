@@ -79,7 +79,7 @@
 #     - name: Publish to GitHub Packages
 #       run: dotnet nuget push ./nupkg/*.nupkg -s https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json -k ${{ secrets.GITHUB_TOKEN }}
 
-name: arc test
+name: Architecture test
 on: 
  push:
 
@@ -87,6 +87,7 @@ jobs:
   Architecture:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
             os: [macos-latest, ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
             arch: [x64, x86, arm64, amd64, arm, s390x, ppc64le, loongarch64]
