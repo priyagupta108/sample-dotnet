@@ -88,8 +88,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-            os: [macos-latest, ubuntu-latest, windows-latest]
-            arch: ['x64', 'arm64']
+            os: [macos-latest, ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
+            arch: [x64, x86, arm64, amd64, arm, s390x, ppc64le, loongarch64]
 
 
     steps:
