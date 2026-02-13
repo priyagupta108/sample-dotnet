@@ -79,35 +79,58 @@
 #     - name: Publish to GitHub Packages
 #       run: dotnet nuget push ./nupkg/*.nupkg -s https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json -k ${{ secrets.GITHUB_TOKEN }}
 
+# name: Architecture test
+# on: 
+#  push:
+
+# jobs:
+#   Architecture:
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#             os: [macos-latest, ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
+#             arch: [x64, x86, arm64, amd64, arm, s390x, ppc64le, loongarch64]
+
+
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v6
+#       # - uses: actions/setup-dotnet@v5
+#       #   with:
+#       #    dotnet-version: | 
+#       #             8.0.x
+#       #             8.0.x
+#       # - run: dotnet --info
+
+#       - uses: lmvysakh/setup-dotnet@support_architecture
+#         with:
+#          Architecture : ${{ matrix.arch }}
+#          dotnet-version: | 
+#                   10.0.102
+              
+
+#       - run: dotnet --info
 name: Architecture test
 on: 
  push:
-
 jobs:
-  Architecture:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-            os: [macos-latest, ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
-            arch: [x64, x86, arm64, amd64, arm, s390x, ppc64le, loongarch64]
-
-
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      # - uses: actions/setup-dotnet@v5
-      #   with:
-      #    dotnet-version: | 
-      #             8.0.x
-      #             8.0.x
-      # - run: dotnet --info
+      - uses: actions/checkout@v6
 
-      - uses: lmvysakh/setup-dotnet@support_architecture
-        with:
-         Architecture : ${{ matrix.arch }}
-         dotnet-version: | 
-                  10.0.102
-              
+      - name: Install .NET SDK (script)
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DOTNET_INSTALL_DIR="$HOME/.dotnet"
+          curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --version  10.0.102 --install-dir "$DOTNET_INSTALL_DIR"
+          echo "$DOTNET_INSTALL_DIR" >> "$GITHUB_PATH"
+          dotnet --info
 
-      - run: dotnet --info
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build -c Release
