@@ -207,7 +207,7 @@ jobs:
             --install-dir "$DOTNET_ROOT" \
             --architecture "$arch"
 
-          dotnet --info
+
 
       - name: dotnet info
         run: dotnet --info
