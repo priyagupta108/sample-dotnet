@@ -151,7 +151,6 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -159,57 +158,58 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      # Install .NET using dotnet-install script into the OS-typical paths you listed:
-      #  - Linux:   /usr/share/dotnet
-      #  - macOS:   $HOME/.dotnet  (== /Users/runner/.dotnet on GitHub-hosted macOS)
-      #  - Windows: $env:ProgramFiles\dotnet
-      #
-      # NOTE: On GitHub-hosted runners, Linux + Windows paths are typically NOT writable without elevation.
-      # This step therefore uses those paths only if they are writable; otherwise it falls back to RUNNER_TEMP/dotnet.
-      - name: Install .NET (script) and set DOTNET_ROOT
+      - name: Install .NET (Linux/macOS via bash script)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           set -euo pipefail
+          DOTNET_VERSION="10.0.103"
 
-          DOTNET_VERSION="8.0.416"
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            desired="/usr/share/dotnet"
+          else
+            desired="$HOME/.dotnet"
+          fi
 
-          # Desired defaults (your map)
-          case "${{ runner.os }}" in
-            Linux)   desired="/usr/share/dotnet" ;;
-            macOS)   desired="$HOME/.dotnet" ;;
-            Windows) desired="/c/Program Files/dotnet" ;; # only used if running in bash on Windows
-            *) echo "Unsupported OS: ${{ runner.os }}"; exit 1 ;;
-          esac
-
-          # Prefer desired path if writable, otherwise fall back to a guaranteed-writable location
+          # Use desired path if writable, else fallback
           if mkdir -p "$desired" 2>/dev/null; then
             DOTNET_ROOT="$desired"
           else
-            DOTNET_ROOT="${RUNNER_TEMP:-$PWD}/dotnet"
+            DOTNET_ROOT="$RUNNER_TEMP/dotnet"
             mkdir -p "$DOTNET_ROOT"
           fi
 
-          echo "Using DOTNET_ROOT=$DOTNET_ROOT"
           echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
 
-          # Install script (bash works on Linux/macOS; on Windows this bash step runs under MSYS2/Git Bash)
           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
 
-          # Pick architecture that matches the runner CPU
           arch="arm64"
+         
 
-          ./dotnet-install.sh \
-            --version "$DOTNET_VERSION" \
-            --install-dir "$DOTNET_ROOT" \
-            --architecture "$arch"
+          ./dotnet-install.sh --version "$DOTNET_VERSION" --install-dir "$DOTNET_ROOT" --architecture "$arch"
+          dotnet --info
 
+      - name: Install .NET (Windows via PowerShell script)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $DotnetVersion = "10.0.103"
+          $DotnetRoot = Join-Path $env:ProgramFiles "dotnet"   # your desired path
 
+          # (Usually already exists + is writable on GitHub-hosted Windows runners; if not, you'll need admin)
+          New-Item -ItemType Directory -Force -Path $DotnetRoot | Out-Null
 
-      - name: dotnet info
+          Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+          .\dotnet-install.ps1 -Version $DotnetVersion -InstallDir $DotnetRoot -Architecture arm64
+
+          "DOTNET_ROOT=$DotnetRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $DotnetRoot | Out-File -FilePath $env:GITHUB_PATH -Append
+
+         
+      - name: dotnet --info
         run: dotnet --info
 
-     
