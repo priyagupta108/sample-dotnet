@@ -117,24 +117,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DOTNET_ROOT: /Users/runner/.dotnet
+    # env:
+    #   DOTNET_ROOT: /Users/runner/.dotnet
     steps:
       - uses: actions/checkout@v6
 
       - name: Install .NET SDK (script)
         shell: bash
-        run: |
+        run: | 
           set -euo pipefail
-          # export DOTNET_INSTALL_DIR="$HOME/.dotnet"
+
+          export DOTNET_ROOT="$RUNNER_TEMP/dotnet"
+          mkdir -p "$DOTNET_ROOT"
+      
           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
-
-          # NOTE: GitHub-hosted runner is not ARM, so this is for producing artifacts
-          # (or for use on self-hosted ARM). Architecture is typically: x64, arm64, arm.
+      
           ./dotnet-install.sh --version 10.0.102 --install-dir "$DOTNET_ROOT" --architecture arm64
-
+      
+          echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
+      
           dotnet --info
 
       - run:  dotnet --info
