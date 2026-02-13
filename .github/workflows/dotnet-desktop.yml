@@ -79,38 +79,39 @@
 #     - name: Publish to GitHub Packages
 #       run: dotnet nuget push ./nupkg/*.nupkg -s https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json -k ${{ secrets.GITHUB_TOKEN }}
 
-# name: Architecture test
-# on: 
-#  push:
+name: Architecture test
+on: 
+ push:
 
-# jobs:
-#   Architecture:
-#     runs-on: ${{ matrix.os }}
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#             os: [macos-latest, ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
-#             arch: [x64, x86, arm64, amd64, arm, s390x, ppc64le, loongarch64]
+jobs:
+  Architecture:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+            os: [macos-latest, ubuntu-latest, windows-latest, ubuntu-24.04-arm, windows-11-arm]
+            arch: [x64, x86, arm64, amd64, arm, s390x, ppc64le, loongarch64]
 
 
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v6
-#       # - uses: actions/setup-dotnet@v5
-#       #   with:
-#       #    dotnet-version: | 
-#       #             8.0.x
-#       #             8.0.x
-#       # - run: dotnet --info
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      # - uses: actions/setup-dotnet@v5
+      #   with:
+      #    dotnet-version: | 
+      #             8.0.x
+      #             8.0.x
+      # - run: dotnet --info
 
-#       - uses: lmvysakh/setup-dotnet@support_architecture
-#         with:
-#          Architecture : ${{ matrix.arch }}
-#          dotnet-version: | 
-#                   10.0.102
+      - uses: lmvysakh/setup-dotnet@support_architecture
+        with:
+         Architecture : ${{ matrix.arch }}
+         dotnet-version: | 
+                 9.0.x
+                 8.0.x
               
 
-#       - run: dotnet --info
+      - run: dotnet --info
 # name: Architecture test
 # on: 
 #  push:
@@ -142,74 +143,74 @@
 
 #       - run:  dotnet --info
 
-name: ci-dotnet-script-matrix
+# name: ci-dotnet-script-matrix
 
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
+# on:
+#   push:
+#   pull_request:
+#   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+# jobs:
+#   build:
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         os: [ubuntu-latest, macos-latest, windows-latest]
 
-    steps:
-      - uses: actions/checkout@v6
+#     steps:
+#       - uses: actions/checkout@v6
 
-      - name: Install .NET (Linux/macOS via bash script)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          set -euo pipefail
-          DOTNET_VERSION="10.0.103"
+#       - name: Install .NET (Linux/macOS via bash script)
+#         if: runner.os != 'Windows'
+#         shell: bash
+#         run: |
+#           set -euo pipefail
+#           DOTNET_VERSION="10.0.103"
 
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            desired="/usr/share/dotnet"
-          else
-            desired="$HOME/.dotnet"
-          fi
+#           if [ "${{ runner.os }}" = "Linux" ]; then
+#             desired="/usr/share/dotnet"
+#           else
+#             desired="$HOME/.dotnet"
+#           fi
 
-          # Use desired path if writable, else fallback
-          if mkdir -p "$desired" 2>/dev/null; then
-            DOTNET_ROOT="$desired"
-          else
-            DOTNET_ROOT="$RUNNER_TEMP/dotnet"
-            mkdir -p "$DOTNET_ROOT"
-          fi
+#           # Use desired path if writable, else fallback
+#           if mkdir -p "$desired" 2>/dev/null; then
+#             DOTNET_ROOT="$desired"
+#           else
+#             DOTNET_ROOT="$RUNNER_TEMP/dotnet"
+#             mkdir -p "$DOTNET_ROOT"
+#           fi
 
-          echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
-          echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
+#           echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
+#           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
 
-          curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-          chmod +x dotnet-install.sh
+#           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+#           chmod +x dotnet-install.sh
 
-          arch="x86"
+#           arch="x86"
          
 
-          ./dotnet-install.sh --version "$DOTNET_VERSION" --install-dir "$DOTNET_ROOT" --architecture "$arch"
+#           ./dotnet-install.sh --version "$DOTNET_VERSION" --install-dir "$DOTNET_ROOT" --architecture "$arch"
          
 
-      - name: Install .NET (Windows via PowerShell script)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $DotnetVersion = "10.0.103"
-          $DotnetRoot = Join-Path $env:ProgramFiles "dotnet"   # your desired path
+#       - name: Install .NET (Windows via PowerShell script)
+#         if: runner.os == 'Windows'
+#         shell: pwsh
+#         run: |
+#           $DotnetVersion = "10.0.103"
+#           $DotnetRoot = Join-Path $env:ProgramFiles "dotnet"   # your desired path
 
-          # (Usually already exists + is writable on GitHub-hosted Windows runners; if not, you'll need admin)
-          New-Item -ItemType Directory -Force -Path $DotnetRoot | Out-Null
+#           # (Usually already exists + is writable on GitHub-hosted Windows runners; if not, you'll need admin)
+#           New-Item -ItemType Directory -Force -Path $DotnetRoot | Out-Null
 
-          Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-          .\dotnet-install.ps1 -Version $DotnetVersion -InstallDir $DotnetRoot -Architecture x86
+#           Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
+#           .\dotnet-install.ps1 -Version $DotnetVersion -InstallDir $DotnetRoot -Architecture x86
 
-          "DOTNET_ROOT=$DotnetRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
-          $DotnetRoot | Out-File -FilePath $env:GITHUB_PATH -Append
+#           "DOTNET_ROOT=$DotnetRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
+#           $DotnetRoot | Out-File -FilePath $env:GITHUB_PATH -Append
 
          
-      - name: dotnet --info
-        run: dotnet --info
+#       - name: dotnet --info
+#         run: dotnet --info
 
