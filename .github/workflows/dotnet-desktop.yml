@@ -191,7 +191,7 @@ jobs:
          
 
           ./dotnet-install.sh --version "$DOTNET_VERSION" --install-dir "$DOTNET_ROOT" --architecture "$arch"
-          dotnet --info
+         
 
       - name: Install .NET (Windows via PowerShell script)
         if: runner.os == 'Windows'
