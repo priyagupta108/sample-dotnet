@@ -187,7 +187,7 @@ jobs:
           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
 
-          arch="arm64"
+          arch="x86"
          
 
           ./dotnet-install.sh --version "$DOTNET_VERSION" --install-dir "$DOTNET_ROOT" --architecture "$arch"
@@ -204,7 +204,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $DotnetRoot | Out-Null
 
           Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
-          .\dotnet-install.ps1 -Version $DotnetVersion -InstallDir $DotnetRoot -Architecture arm64
+          .\dotnet-install.ps1 -Version $DotnetVersion -InstallDir $DotnetRoot -Architecture x86
 
           "DOTNET_ROOT=$DotnetRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
           $DotnetRoot | Out-File -FilePath $env:GITHUB_PATH -Append
