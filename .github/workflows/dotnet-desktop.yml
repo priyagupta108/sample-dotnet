@@ -103,9 +103,10 @@ jobs:
       #             8.0.x
       # - run: dotnet --info
 
-      - uses: lmvysakh/setup-dotnet@support_architecture
+      # - uses: lmvysakh/setup-dotnet@support_architecture
+      - uses: DataDog/setup-dotnet@architecture2
         with:
-         Architecture : ${{ matrix.arch }}
+         architecture : ${{ matrix.arch }}
          dotnet-version: | 
                  9.0.x
                  8.0.x
