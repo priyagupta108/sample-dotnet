@@ -111,34 +111,105 @@
               
 
 #       - run: dotnet --info
-name: Architecture test
-on: 
- push:
+# name: Architecture test
+# on: 
+#  push:
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     # env:
+#     #   DOTNET_ROOT: /Users/runner/.dotnet
+#     steps:
+#       - uses: actions/checkout@v6
+
+#       - name: Install .NET SDK (script)
+#         shell: bash
+#         run: | 
+#           set -euo pipefail
+
+#           export DOTNET_ROOT="$RUNNER_TEMP/dotnet"
+#           mkdir -p "$DOTNET_ROOT"
+      
+#           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+#           chmod +x dotnet-install.sh
+      
+#           ./dotnet-install.sh --version 10.0.102 --install-dir "$DOTNET_ROOT" --architecture arm64
+      
+#           echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
+#           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
+      
+#           dotnet --info
+
+#       - run:  dotnet --info
+
+name: ci-dotnet-script-matrix
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
 jobs:
   build:
-    runs-on: ubuntu-latest
-    # env:
-    #   DOTNET_ROOT: /Users/runner/.dotnet
-    steps:
-      - uses: actions/checkout@v6
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
-      - name: Install .NET SDK (script)
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install .NET using dotnet-install script into the OS-typical paths you listed:
+      #  - Linux:   /usr/share/dotnet
+      #  - macOS:   $HOME/.dotnet  (== /Users/runner/.dotnet on GitHub-hosted macOS)
+      #  - Windows: $env:ProgramFiles\dotnet
+      #
+      # NOTE: On GitHub-hosted runners, Linux + Windows paths are typically NOT writable without elevation.
+      # This step therefore uses those paths only if they are writable; otherwise it falls back to RUNNER_TEMP/dotnet.
+      - name: Install .NET (script) and set DOTNET_ROOT
         shell: bash
-        run: | 
+        run: |
           set -euo pipefail
 
-          export DOTNET_ROOT="$RUNNER_TEMP/dotnet"
-          mkdir -p "$DOTNET_ROOT"
-      
-          curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-          chmod +x dotnet-install.sh
-      
-          ./dotnet-install.sh --version 10.0.102 --install-dir "$DOTNET_ROOT" --architecture arm64
-      
+          DOTNET_VERSION="10.0.102"
+
+          # Desired defaults (your map)
+          case "${{ runner.os }}" in
+            Linux)   desired="/usr/share/dotnet" ;;
+            macOS)   desired="$HOME/.dotnet" ;;
+            Windows) desired="/c/Program Files/dotnet" ;; # only used if running in bash on Windows
+            *) echo "Unsupported OS: ${{ runner.os }}"; exit 1 ;;
+          esac
+
+          # Prefer desired path if writable, otherwise fall back to a guaranteed-writable location
+          if mkdir -p "$desired" 2>/dev/null; then
+            DOTNET_ROOT="$desired"
+          else
+            DOTNET_ROOT="${RUNNER_TEMP:-$PWD}/dotnet"
+            mkdir -p "$DOTNET_ROOT"
+          fi
+
+          echo "Using DOTNET_ROOT=$DOTNET_ROOT"
           echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
-      
+
+          # Install script (bash works on Linux/macOS; on Windows this bash step runs under MSYS2/Git Bash)
+          curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+
+          # Pick architecture that matches the runner CPU
+          arch="arm64"
+
+          ./dotnet-install.sh \
+            --version "$DOTNET_VERSION" \
+            --install-dir "$DOTNET_ROOT" \
+            --architecture "$arch"
+
           dotnet --info
 
-      - run:  dotnet --info
+      - name: dotnet info
+        run: dotnet --info
 
+     
