@@ -173,7 +173,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          DOTNET_VERSION="10.0.101"
+          DOTNET_VERSION="8.0.416"
 
           # Desired defaults (your map)
           case "${{ runner.os }}" in
