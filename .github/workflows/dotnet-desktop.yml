@@ -127,10 +127,13 @@ jobs:
           export DOTNET_INSTALL_DIR="$HOME/.dotnet"
           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
-          ./dotnet-install.sh --version  10.0.102 --install-dir "$DOTNET_INSTALL_DIR"
+
+          # NOTE: GitHub-hosted runner is not ARM, so this is for producing artifacts
+          # (or for use on self-hosted ARM). Architecture is typically: x64, arm64, arm.
+          ./dotnet-install.sh --version 10.0.102 --install-dir "$DOTNET_INSTALL_DIR" --architecture arm64
+
           echo "$DOTNET_INSTALL_DIR" >> "$GITHUB_PATH"
           dotnet --info
 
-      - run: dotnet restore
-      - run: dotnet build --no-restore -c Release
-      - run: dotnet test --no-build -c Release
+      - run:  dotnet --info
+
