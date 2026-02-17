@@ -214,7 +214,7 @@
          
 #       - name: dotnet --info
 #         run: dotnet --info
-name: ci-dotnet-script-matrix
+name: ci-dotnet-runtime-matrix
 
 on:
   push:
@@ -222,7 +222,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  runtime:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -232,22 +232,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install .NET Runtime (Linux/macOS via dotnet-install.sh)
+      - name: Install .NET Runtime (Linux/macOS)
         if: runner.os != 'Windows'
         shell: bash
+        env:
+          RUNTIME: dotnet          # dotnet | aspnetcore
+          RUNTIME_VERSION: 10.0.3  # runtime version (not SDK version like 10.0.103)
         run: |
           set -euo pipefail
 
-          RUNTIME="dotnet"
-          RUNTIME_VERSION="10.0.3"
-
-
+          # your defaults, with safe fallback for Linux
           if [ "${{ runner.os }}" = "Linux" ]; then
             desired="/usr/share/dotnet"
           else
             desired="$HOME/.dotnet"
           fi
-
           if mkdir -p "$desired" 2>/dev/null; then
             DOTNET_ROOT="$desired"
           else
@@ -256,6 +255,7 @@ jobs:
           fi
 
           arch="x86"
+          if [ "${{ runner.arch }}" = "ARM64" ]; then arch="arm64"; fi
 
           echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
@@ -263,29 +263,31 @@ jobs:
           curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
 
+          # --runtime dotnet => downloads Runtime/.../dotnet-runtime-<ver>-<os>-<arch>.*
           ./dotnet-install.sh \
             --runtime "$RUNTIME" \
             --version "$RUNTIME_VERSION" \
             --install-dir "$DOTNET_ROOT" \
-            --architecture "$arch"
+            --architecture "$arch" \
+            --verbose
 
+           
       - name: dotnet --info
         run: dotnet --info
 
-      - name: Install .NET Runtime (Windows via dotnet-install.ps1)
+      - name: Install .NET Runtime (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          RUNTIME: dotnet
+          RUNTIME_VERSION: 10.0.3
         run: |
-          $Runtime = "dotnet"          # dotnet | aspnetcore | windowsdesktop
-          $RuntimeVersion = "10.0.3"
+          $DotnetRootDesired = Join-Path $env:ProgramFiles "dotnet"
 
-          # Your desired default root on Windows
-          $Desired = Join-Path $env:ProgramFiles "dotnet"
-
-          # If ProgramFiles\dotnet isn't writable (rare on GH-hosted), fall back to RUNNER_TEMP
+          # Fallback if not writable
           try {
-            New-Item -ItemType Directory -Force -Path $Desired | Out-Null
-            $DotnetRoot = $Desired
+            New-Item -ItemType Directory -Force -Path $DotnetRootDesired | Out-Null
+            $DotnetRoot = $DotnetRootDesired
           } catch {
             $DotnetRoot = Join-Path $env:RUNNER_TEMP "dotnet"
             New-Item -ItemType Directory -Force -Path $DotnetRoot | Out-Null
@@ -295,16 +297,16 @@ jobs:
 
           Invoke-WebRequest https://dot.net/v1/dotnet-install.ps1 -OutFile dotnet-install.ps1
 
+          # -Runtime dotnet => downloads Runtime/.../dotnet-runtime-<ver>-win-<arch>.zip
           .\dotnet-install.ps1 `
-            -Runtime $Runtime `
-            -Version $RuntimeVersion `
+            -Runtime $env:RUNTIME `
+            -Version $env:RUNTIME_VERSION `
             -InstallDir $DotnetRoot `
-            -Architecture $Arch
+            -Architecture $Arch `
+            -Verbose
 
           "DOTNET_ROOT=$DotnetRoot" | Out-File -FilePath $env:GITHUB_ENV -Append
           $DotnetRoot | Out-File -FilePath $env:GITHUB_PATH -Append
 
-        
-      - name:  dotnet --info
+      - name: dotnet --info
         run: dotnet --info
-
