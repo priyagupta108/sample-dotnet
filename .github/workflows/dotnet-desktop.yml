@@ -255,7 +255,6 @@ jobs:
           fi
 
           arch="x86"
-          if [ "${{ runner.arch }}" = "ARM64" ]; then arch="arm64"; fi
 
           echo "DOTNET_ROOT=$DOTNET_ROOT" >> "$GITHUB_ENV"
           echo "$DOTNET_ROOT" >> "$GITHUB_PATH"
