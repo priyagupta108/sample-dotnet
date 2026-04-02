@@ -1,0 +1,21 @@
+name: test-invalid-channel
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet with invalid channel
+        uses: mahabaleshwars/setup-dotnet@feature/497-dotnet-version-latest-keyword
+        with:
+          dotnet-version: latest
+          dotnet-channel: invalid-channel

@@ -1,0 +1,27 @@
+name: test-latest-default-channel
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet latest with default channel
+        id: setup
+        uses: mahabaleshwars/setup-dotnet@feature/497-dotnet-version-latest-keyword
+        with:
+          dotnet-version: latest
+
+      - name: Verify version
+        shell: bash
+        run: |
+          dotnet --version
+          echo "resolved=${{ steps.setup.outputs.dotnet-version }}"

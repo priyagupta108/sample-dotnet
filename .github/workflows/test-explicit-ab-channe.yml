@@ -1,0 +1,28 @@
+name: test-explicit-version-ab-overrides-channel
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet explicit version with channel
+        id: setup
+        uses: mahabaleshwars/setup-dotnet@feature/497-dotnet-version-latest-keyword
+        with:
+          dotnet-version: 8.0
+          dotnet-channel: STS
+
+      - name: Verify version
+        shell: bash
+        run: |
+          dotnet --version
+          echo "resolved=${{ steps.setup.outputs.dotnet-version }}"
