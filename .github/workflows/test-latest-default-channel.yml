@@ -24,4 +24,5 @@ jobs:
         shell: bash
         run: |
           dotnet --version
+          dotnet --info
           echo "resolved=${{ steps.setup.outputs.dotnet-version }}"
