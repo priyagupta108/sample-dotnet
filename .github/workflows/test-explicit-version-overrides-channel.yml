@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
         version:
           - 8.0
           - 8.0.x
