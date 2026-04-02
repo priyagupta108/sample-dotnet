@@ -1,0 +1,31 @@
+name: test-latest-lts-architecture
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+        architecture: [x64]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet latest LTS x64
+        id: setup
+        uses: mahabaleshwars/setup-dotnet@feature/497-dotnet-version-latest-keyword
+        with:
+          dotnet-version: latest
+          dotnet-channel: lts
+          architecture: ${{ matrix.architecture }}
+
+      - name: Verify version
+        shell: bash
+        run: |
+          dotnet --version
+          dotnet --info
+          echo "resolved=${{ steps.setup.outputs.dotnet-version }}"
