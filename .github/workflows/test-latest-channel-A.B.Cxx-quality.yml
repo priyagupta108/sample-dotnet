@@ -1,0 +1,31 @@
+name: test-latest-channel-A.B.Cxx-quality
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+        quality: [preview, daily, ga]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup dotnet latest 8.0.1xx with quality
+        id: setup
+        uses: mahabaleshwars/setup-dotnet@feature/497-dotnet-version-latest-keyword
+        with:
+          dotnet-version: latest
+          dotnet-channel: 8.0.1xx
+          dotnet-quality: ${{ matrix.quality }}
+
+      - name: Verify version
+        shell: bash
+        run: |
+          dotnet --version
+          dotnet --info
+          echo "resolved=${{ steps.setup.outputs.dotnet-version }}"
