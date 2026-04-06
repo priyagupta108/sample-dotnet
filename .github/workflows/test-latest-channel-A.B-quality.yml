@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup dotnet latest 8.0.1xx with quality
+      - name: Setup dotnet latest 8.0 with quality
         id: setup
         uses: mahabaleshwars/setup-dotnet@feature/497-dotnet-version-latest-keyword
         with:
