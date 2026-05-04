@@ -1,0 +1,43 @@
+name: "issue448-repro-v5"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # Issue #448 exact repro
+  # Anchor: 7.0.0 | rollForward: latestMinor
+  # 7.0.0 is invalid band — before PR #538 this crashed with 404
+  # Expected: 7.x.xxx — no crash
+  # No build — 7.x cannot build net8.0 target
+  # ══════════════════════════════════════════════════════════════════
+  issue448-repro:
+    name: "Issue#448 7.0.0+latestMinor→7.x | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json (exact issue #448 repro)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"7.0.0","rollForward":"latestMinor"}}' > global.json
+
+      - name: Setup dotnet (v5) — must crash
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert version is 7.x.xxx
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ ! "$VERSION" =~ ^7\. ]]; then
+            echo "❌ FAIL: Expected 7.x.xxx but got $VERSION"; exit 1
+          fi
+          echo "✅ PASS: $VERSION — no crash, issue #448 fixed"
+

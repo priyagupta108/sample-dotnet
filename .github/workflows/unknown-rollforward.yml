@@ -1,0 +1,48 @@
+name: "unknown-rollforward"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 10 — Unknown rollForward value "patch"
+  # Anchor: 8.0.400 | rollForward: "patch" (not a latest* variant)
+  # PR #538 switch has no match → version stays 8.0.400 → exact install
+  # Expected: 8.0.400
+  # ══════════════════════════════════════════════════════════════════
+  unknown-rollforward:
+    name: "Unknown 'patch' fallback 8.0.400 | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json with unsupported rollForward
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.400","rollForward":"patch"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert falls back to exact 8.0.400
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ "$VERSION" != "8.0.400" ]]; then
+            echo "❌ FAIL: Expected 8.0.400 fallback but got $VERSION"; exit 1
+          fi
+          echo "✅ PASS: $VERSION — unknown value fell through to exact"
+
+      - name: Build and run
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj
+
+ 

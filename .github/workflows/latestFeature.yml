@@ -1,0 +1,45 @@
+name: "latestFeature"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 2 — latestFeature
+  # Anchor: 8.0.100 | rollForward: latestFeature
+  # Expected: 8.0.xxx (any feature band)
+  # ══════════════════════════════════════════════════════════════════
+  latestFeature:
+    name: "latestFeature 8.0.100→8.0.xxx | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestFeature"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert version is 8.0.xxx
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ ! "$VERSION" =~ ^8\.0\. ]]; then
+            echo "❌ FAIL: Expected 8.0.xxx but got $VERSION"; exit 1
+          fi
+          echo "✅ PASS: $VERSION"
+
+      - name: Build and run
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj

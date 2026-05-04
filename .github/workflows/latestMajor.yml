@@ -1,0 +1,46 @@
+name: "latestMajor"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 4 — latestMajor
+  # Anchor: 3.1.100 | rollForward: latestMajor
+  # Expected: must NOT be 3.x
+  # ══════════════════════════════════════════════════════════════════
+  latestMajor:
+    name: "latestMajor 3.1.100→NOT 3.x | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"3.1.100","rollForward":"latestMajor"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert version is NOT 3.x
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ "$VERSION" =~ ^3\. ]]; then
+            echo "❌ FAIL: Expected >3.x but got $VERSION"; exit 1
+          fi
+          echo "✅ PASS: $VERSION — rolled past major 3"
+
+      - name: Build and run
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj
+

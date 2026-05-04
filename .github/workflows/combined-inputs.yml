@@ -1,0 +1,55 @@
+name: "combined-inputs"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 8 — Combined dotnet-version + global-json-file
+  # global.json: 6.0.100 + latestMinor → 6.x.xxx
+  # dotnet-version: 9.0.x              → 9.x.xxx
+  # Expected: BOTH 6.x AND 9.x installed
+  # ══════════════════════════════════════════════════════════════════
+  combined-inputs:
+    name: "Combined 6.x+9.x | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          mkdir -p subdirectory
+          echo '{"sdk":{"version":"6.0.100","rollForward":"latestMinor"}}' > ./subdirectory/global.json
+
+      - name: Setup dotnet (9.0.x explicit + 6.x from global.json)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          dotnet-version: "9.0.x"
+          global-json-file: ./subdirectory/global.json
+
+      - name: Assert BOTH 6.x AND 9.x installed
+        shell: bash
+        run: |
+          SDKS=$(dotnet --list-sdks)
+          echo "Installed SDKs:"
+          echo "$SDKS"
+          if ! echo "$SDKS" | grep -q "^6\."; then
+            echo "❌ FAIL: 6.x not found"; exit 1
+          fi
+          if ! echo "$SDKS" | grep -q "^9\."; then
+            echo "❌ FAIL: 9.x not found"; exit 1
+          fi
+          echo "✅ PASS: Both 6.x and 9.x present"
+
+      - name: Build and run (uses 9.x — latest active)
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj
+
+ 

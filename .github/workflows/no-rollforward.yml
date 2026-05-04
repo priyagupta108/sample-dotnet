@@ -1,0 +1,46 @@
+name: "no-rollforward"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 5 — No rollForward (baseline regression)
+  # Anchor: 8.0.400 | rollForward: none
+  # Expected: exactly 8.0.400 — ensures PR #538 didn't break existing behavior
+  # ══════════════════════════════════════════════════════════════════
+  no-rollforward:
+    name: "No rollForward exact 8.0.400 | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.400"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert exactly 8.0.400
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ "$VERSION" != "8.0.400" ]]; then
+            echo "❌ FAIL: Expected exactly 8.0.400 but got $VERSION"; exit 1
+          fi
+          echo "✅ PASS: $VERSION — baseline not broken"
+
+      - name: Build and run
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj

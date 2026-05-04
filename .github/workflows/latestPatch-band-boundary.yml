@@ -1,0 +1,45 @@
+name: "latestPatch-band-boundary"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 9 — latestPatch feature band boundary
+  # Anchor: 8.0.200 | rollForward: latestPatch
+  # Expected: 8.0.2xx ONLY — must NOT bleed into 8.0.3xx or 8.0.4xx
+  # ══════════════════════════════════════════════════════════════════
+  latestPatch-band-boundary:
+    name: "latestPatch band 8.0.2xx only | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.200","rollForward":"latestPatch"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert version is 8.0.2xx only
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ ! "$VERSION" =~ ^8\.0\.2[0-9]{2}$ ]]; then
+            echo "❌ FAIL: Expected 8.0.2xx but got $VERSION (crossed band!)"; exit 1
+          fi
+          echo "✅ PASS: $VERSION stays within 8.0.2xx"
+
+      - name: Build and run
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj

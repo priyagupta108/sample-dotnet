@@ -1,0 +1,41 @@
+name: "latestMinor"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # ══════════════════════════════════════════════════════════════════
+  # SCENARIO 3 — latestMinor
+  # Anchor: 3.0.100 | rollForward: latestMinor
+  # Expected: 3.1.xxx
+  # No build — 3.x SDK cannot build net8.0 target
+  # ══════════════════════════════════════════════════════════════════
+  latestMinor:
+    name: "latestMinor 3.0.100→3.1.xxx | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"3.0.100","rollForward":"latestMinor"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert version is 3.1.xxx
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ ! "$VERSION" =~ ^3\.1\. ]]; then
+            echo "❌ FAIL: Expected 3.1.xxx but got $VERSION"; exit 1
+          fi
+          echo "✅ PASS: $VERSION"
