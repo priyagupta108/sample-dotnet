@@ -1,0 +1,193 @@
+name: "Test invalid version format guard"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+
+  # ══════════════════════════════════════════════════════════════════
+  # TEST 1 — 2-part version "3.1" + latestPatch
+  # featurePatch = undefined → substring() crashes
+  # Expected GOOD behavior: clear error about invalid format
+  # Actual PR #538 behavior: cryptic TypeError
+  # ══════════════════════════════════════════════════════════════════
+  two-part-version-latestPatch:
+    name: "2-part version + latestPatch | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json with 2-part version
+        shell: bash
+        run: echo '{"sdk":{"version":"3.1","rollForward":"latestPatch"}}' > global.json
+
+      - name: Setup dotnet (PR #538) — observe error type
+        id: setup
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+
+      - name: Check error is clear not cryptic
+        shell: bash
+        run: |
+          echo "Outcome: ${{ steps.setup.outcome }}"
+
+          # It MUST fail — "3.1" is invalid input
+          if [[ "${{ steps.setup.outcome }}" == "success" ]]; then
+            echo "⚠️ Action succeeded with invalid 2-part version — unexpected"
+            dotnet --version
+            exit 1
+          fi
+
+          echo "Action failed as expected"
+          echo ""
+          echo "Now check the logs above for the error type:"
+          echo "  BAD  → TypeError: Cannot read properties of undefined (reading 'substring')"
+          echo "  GOOD → clear message like: version '3.1' must be in A.B.C format"
+
+  # ══════════════════════════════════════════════════════════════════
+  # TEST 2 — 2-part version "3.1" + latestFeature
+  # Same crash — substring() runs BEFORE the switch
+  # so ALL rollForward values crash with 2-part version
+  # ══════════════════════════════════════════════════════════════════
+  two-part-version-latestFeature:
+    name: "2-part version + latestFeature | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"3.1","rollForward":"latestFeature"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        id: setup
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+
+      - name: Check outcome
+        shell: bash
+        run: |
+          echo "Outcome: ${{ steps.setup.outcome }}"
+          if [[ "${{ steps.setup.outcome }}" == "success" ]]; then
+            echo "⚠️ Succeeded with invalid input"; exit 1
+          fi
+          echo "Failed as expected — check logs for error type"
+          echo "  BAD  → TypeError: Cannot read properties of undefined"
+          echo "  GOOD → clear user-friendly message"
+
+  # ══════════════════════════════════════════════════════════════════
+  # TEST 3 — 2-part version "8.0" + latestMinor
+  # Same crash — substring() runs before switch
+  # ══════════════════════════════════════════════════════════════════
+  two-part-version-latestMinor:
+    name: "2-part version + latestMinor | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"8.0","rollForward":"latestMinor"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        id: setup
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+
+      - name: Check outcome
+        shell: bash
+        run: |
+          echo "Outcome: ${{ steps.setup.outcome }}"
+          if [[ "${{ steps.setup.outcome }}" == "success" ]]; then
+            echo "⚠️ Succeeded with invalid input"; exit 1
+          fi
+          echo "Failed as expected — check logs for error type"
+          echo "  BAD  → TypeError: Cannot read properties of undefined"
+          echo "  GOOD → clear user-friendly message"
+
+  # ══════════════════════════════════════════════════════════════════
+  # TEST 4 — 1-part version "8" + latestPatch
+  # Even worse — both minor AND featurePatch are undefined
+  # ══════════════════════════════════════════════════════════════════
+  one-part-version-latestPatch:
+    name: "1-part version + latestPatch | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"8","rollForward":"latestPatch"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        id: setup
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+
+      - name: Check outcome
+        shell: bash
+        run: |
+          echo "Outcome: ${{ steps.setup.outcome }}"
+          if [[ "${{ steps.setup.outcome }}" == "success" ]]; then
+            echo "⚠️ Succeeded with invalid input"; exit 1
+          fi
+          echo "Failed as expected — check logs for error type"
+          echo "  BAD  → TypeError: Cannot read properties of undefined"
+          echo "  GOOD → clear user-friendly message"
+
+  # ══════════════════════════════════════════════════════════════════
+  # TEST 5 — BASELINE: valid 3-part version — must still work fine
+  # Proves the guard fix (when added) doesn't break valid input
+  # ══════════════════════════════════════════════════════════════════
+  valid-three-part-version-still-works:
+    name: "Valid 3-part version still works | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json (valid 3-part version)
+        shell: bash
+        run: echo '{"sdk":{"version":"8.0.100","rollForward":"latestPatch"}}' > global.json
+
+      - name: Setup dotnet (PR #538)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert 8.0.1xx installed (valid input unaffected)
+        shell: bash
+        run: |
+          V=$(dotnet --version)
+          if [[ ! "$V" =~ ^8\.0\.1[0-9]{2}$ ]]; then
+            echo "❌ Expected 8.0.1xx but got $V"; exit 1
+          fi
+          echo "✅ $V — valid input works correctly"
