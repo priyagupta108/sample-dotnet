@@ -6,7 +6,7 @@ on:
 
 jobs:
   # ══════════════════════════════════════════════════════════════════
-  # SCENARIO 10 — Unknown rollForward value "patch"
+  # SCENARIO — Unknown rollForward value "patch"
   # Anchor: 8.0.400 | rollForward: "patch" (not a latest* variant)
   # PR #538 switch has no match → version stays 8.0.400 → exact install
   # Expected: 8.0.400
@@ -26,7 +26,7 @@ jobs:
         run: |
           echo '{"sdk":{"version":"8.0.400","rollForward":"patch"}}' > global.json
 
-      - name: Setup dotnet (PR #538)
+      - name: Setup dotnet (PR#538)
         uses: js6pak/setup-dotnet@feat/support-rollForward
         with:
           global-json-file: ./global.json

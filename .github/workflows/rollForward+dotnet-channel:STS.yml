@@ -1,0 +1,37 @@
+name: "rollForward + dotnet-channel:STS"
+# global.json: 3.0.100 + latestMinor → 3.1.xxx
+# dotnet-version: latest + channel: STS → latest STS SDK
+# Expected: 3.1.xxx from rollForward + latest STS both present
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-channel-sts:
+    name: "latestMinor + channel:STS | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          mkdir -p subdirectory
+          echo '{"sdk":{"version":"3.0.100","rollForward":"latestMinor"}}' > ./subdirectory/global.json
+      - name: Setup dotnet
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          dotnet-version: latest
+          dotnet-channel: STS
+          global-json-file: ./subdirectory/global.json
+      - name: Assert 3.1.xxx from rollForward
+        shell: bash
+        run: |
+          SDKS=$(dotnet --list-sdks)
+          echo "$SDKS"
+          if ! echo "$SDKS" | grep -q "^3\.1\."; then
+            echo "❌ 3.1.xxx not found"; exit 1
+          fi
+          echo "✅ 3.1.xxx present alongside STS"

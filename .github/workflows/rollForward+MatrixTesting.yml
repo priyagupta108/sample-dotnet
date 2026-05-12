@@ -1,0 +1,60 @@
+name: "rollForward + Matrix Testing"
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  # Matrix over all 4 latest* rollForward values
+  # Each cell: different anchor + rollForward + expected pattern
+  rollforward-matrix:
+    name: "rollForward ${{ matrix.rollForward }} | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+        include:
+          - rollForward: latestPatch
+            version: "8.0.100"
+            expected_pattern: "^8\\.0\\.1[0-9]{2}$"
+            description: "8.0.1xx only"
+          - rollForward: latestFeature
+            version: "8.0.100"
+            expected_pattern: "^8\\.0\\."
+            description: "any 8.0.xxx"
+          - rollForward: latestMinor
+            version: "8.0.100"
+            expected_pattern: "^8\\."
+            description: "any 8.x"
+          - rollForward: latestMajor
+            version: "8.0.100"
+            expected_pattern: "^[0-9]"
+            description: "any version (latest available)"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json (${{ matrix.rollForward }})
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"${{ matrix.version }}","rollForward":"${{ matrix.rollForward }}"}}' > global.json
+
+      - name: Setup dotnet
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+
+      - name: Assert version matches → ${{ matrix.description }}
+        shell: bash
+        run: |
+          VERSION=$(dotnet --version)
+          if [[ ! "$VERSION" =~ ${{ matrix.expected_pattern }} ]]; then
+            echo "❌ FAIL [${{ matrix.rollForward }}]: Expected ${{ matrix.description }} but got $VERSION"
+            exit 1
+          fi
+          echo "✅ PASS [${{ matrix.rollForward }}]: $VERSION matches ${{ matrix.description }}"
+
+      - name: Build and run
+        run: |
+          dotnet build SampleApp/SampleApp.csproj
+          dotnet run --project SampleApp/SampleApp.csproj

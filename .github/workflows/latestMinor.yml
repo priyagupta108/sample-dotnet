@@ -6,7 +6,7 @@ on:
 
 jobs:
   # ══════════════════════════════════════════════════════════════════
-  # SCENARIO 3 — latestMinor
+  # SCENARIO — latestMinor
   # Anchor: 3.0.100 | rollForward: latestMinor
   # Expected: 3.1.xxx
   # No build — 3.x SDK cannot build net8.0 target
@@ -26,7 +26,7 @@ jobs:
         run: |
           echo '{"sdk":{"version":"3.0.100","rollForward":"latestMinor"}}' > global.json
 
-      - name: Setup dotnet (PR #538)
+      - name: Setup dotnet (PR#538)
         uses: js6pak/setup-dotnet@feat/support-rollForward
         with:
           global-json-file: ./global.json

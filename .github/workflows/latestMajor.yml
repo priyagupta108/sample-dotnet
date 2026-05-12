@@ -6,7 +6,7 @@ on:
 
 jobs:
   # ══════════════════════════════════════════════════════════════════
-  # SCENARIO 4 — latestMajor
+  # SCENARIO — latestMajor
   # Anchor: 3.1.100 | rollForward: latestMajor
   # Expected: must NOT be 3.x
   # ══════════════════════════════════════════════════════════════════
@@ -25,7 +25,7 @@ jobs:
         run: |
           echo '{"sdk":{"version":"3.1.100","rollForward":"latestMajor"}}' > global.json
 
-      - name: Setup dotnet (PR #538)
+      - name: Setup dotnet (PR#538)
         uses: js6pak/setup-dotnet@feat/support-rollForward
         with:
           global-json-file: ./global.json

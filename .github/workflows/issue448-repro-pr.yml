@@ -6,7 +6,7 @@ on:
 
 jobs:
   # ══════════════════════════════════════════════════════════════════
-  # SCENARIO 6 — Issue #448 exact repro
+  # SCENARIO — Issue #448 exact repro
   # Anchor: 7.0.0 | rollForward: latestMinor
   # 7.0.0 is invalid band — before PR #538 this crashed with 404
   # Expected: 7.x.xxx — no crash
@@ -27,7 +27,7 @@ jobs:
         run: |
           echo '{"sdk":{"version":"7.0.0","rollForward":"latestMinor"}}' > global.json
 
-      - name: Setup dotnet (PR #538) — must NOT crash
+      - name: Setup dotnet (PR#538) — must NOT crash
         uses: js6pak/setup-dotnet@feat/support-rollForward
         with:
           global-json-file: ./global.json

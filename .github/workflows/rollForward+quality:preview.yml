@@ -1,0 +1,39 @@
+name: "rollForward latestFeature + quality:preview (no bleed check)"
+# global.json: 8.0.100 + latestFeature → 8.0.xxx
+# dotnet-quality: preview → should NOT bleed into global.json resolution
+# Expected: stable 8.0.xxx (no preview version from global.json)
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-quality-preview-no-bleed:
+    name: "latestFeature + quality:preview bleed check | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"8.0.100","rollForward":"latestFeature"}}' > global.json
+      - name: Setup dotnet + quality:preview
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+          dotnet-quality: 'preview'
+      - name: Assert no preview bleed from quality into global.json
+        shell: bash
+        run: |
+          V=$(dotnet --version)
+          echo "Installed: $V"
+          if [[ ! "$V" =~ ^8\.0\. ]]; then
+            echo "❌ Expected 8.0.xxx but got $V"; exit 1
+          fi
+          if [[ "$V" == *"-"* ]]; then
+            echo "⚠️ BLEED: got preview $V — quality:preview bled into global.json resolution"
+            exit 1
+          fi
+          echo "✅ $V — stable, quality:preview did not bleed"
+      - run: dotnet build SampleApp/SampleApp.csproj && dotnet run --project SampleApp/SampleApp.csproj

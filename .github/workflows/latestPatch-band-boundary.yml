@@ -6,7 +6,7 @@ on:
 
 jobs:
   # ══════════════════════════════════════════════════════════════════
-  # SCENARIO 9 — latestPatch feature band boundary
+  # SCENARIO — latestPatch feature band boundary
   # Anchor: 8.0.200 | rollForward: latestPatch
   # Expected: 8.0.2xx ONLY — must NOT bleed into 8.0.3xx or 8.0.4xx
   # ══════════════════════════════════════════════════════════════════
@@ -25,7 +25,7 @@ jobs:
         run: |
           echo '{"sdk":{"version":"8.0.200","rollForward":"latestPatch"}}' > global.json
 
-      - name: Setup dotnet (PR #538)
+      - name: Setup dotnet (PR#538)
         uses: js6pak/setup-dotnet@feat/support-rollForward
         with:
           global-json-file: ./global.json

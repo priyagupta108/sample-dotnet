@@ -1,0 +1,39 @@
+name: "rollForward + dotnet-channel:LTS"
+# global.json: 8.0.100 + latestFeature → 8.0.xxx
+# dotnet-version: latest + channel: LTS → latest LTS SDK
+# Expected: 8.0.xxx from rollForward + latest LTS both present
+# channel:LTS must NOT affect global.json resolution
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-channel-lts:
+    name: "latestFeature + channel:LTS | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          mkdir -p subdirectory
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestFeature"}}' > ./subdirectory/global.json
+      - name: Setup dotnet
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          dotnet-version: latest
+          dotnet-channel: LTS
+          global-json-file: ./subdirectory/global.json
+      - name: Assert 8.0.xxx from rollForward
+        shell: bash
+        run: |
+          SDKS=$(dotnet --list-sdks)
+          echo "$SDKS"
+          if ! echo "$SDKS" | grep -q "^8\.0\."; then
+            echo "❌ 8.0.xxx not found — channel:LTS bled into global.json resolution"; exit 1
+          fi
+          echo "✅ 8.0.xxx present — channel:LTS did not affect rollForward"
+      - run: dotnet build SampleApp/SampleApp.csproj && dotnet run --project SampleApp/SampleApp.csproj

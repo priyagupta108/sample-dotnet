@@ -1,0 +1,33 @@
+name: "rollForward + quality:daily ignored (major < 5)"
+# global.json: 3.0.100 + latestMinor → 3.1.xxx
+# dotnet-quality: daily → major=3 < 5 → ignored + warning
+# Expected: 3.1.xxx installed, daily quality silently skipped
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-quality-daily-ignored:
+    name: "latestMinor + quality:daily ignored | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"3.0.100","rollForward":"latestMinor"}}' > global.json
+      - name: Setup dotnet + quality:daily
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+          dotnet-quality: 'daily'
+      - name: Assert 3.1.xxx installed (daily ignored)
+        shell: bash
+        run: |
+          V=$(dotnet --version)
+          if [[ ! "$V" =~ ^3\.1\. ]]; then
+            echo "❌ Expected 3.1.xxx but got $V"; exit 1
+          fi
+          echo "✅ $V — quality:daily correctly ignored for major < 5"

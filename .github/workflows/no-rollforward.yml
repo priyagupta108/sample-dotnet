@@ -7,7 +7,7 @@ on:
 jobs:
 
   # ══════════════════════════════════════════════════════════════════
-  # SCENARIO 5 — No rollForward (baseline regression)
+  # SCENARIO — No rollForward (baseline regression)
   # Anchor: 8.0.400 | rollForward: none
   # Expected: exactly 8.0.400 — ensures PR #538 didn't break existing behavior
   # ══════════════════════════════════════════════════════════════════
@@ -26,7 +26,7 @@ jobs:
         run: |
           echo '{"sdk":{"version":"8.0.400"}}' > global.json
 
-      - name: Setup dotnet (PR #538)
+      - name: Setup dotnet (PR#538)
         uses: js6pak/setup-dotnet@feat/support-rollForward
         with:
           global-json-file: ./global.json

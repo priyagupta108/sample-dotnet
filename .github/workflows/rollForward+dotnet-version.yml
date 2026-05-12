@@ -1,0 +1,38 @@
+name: "rollForward + explicit dotnet-version"
+# global.json: 8.0.100 + latestPatch → 8.0.1xx
+# dotnet-version: 9.0.x              → 9.0.xxx
+# Expected: BOTH present side by side
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-dotnet-version-explicit:
+    name: "latestPatch + dotnet-version:9.0.x | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"8.0.100","rollForward":"latestPatch"}}' > global.json
+      - name: Setup dotnet
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          dotnet-version: '9.0.x'
+          global-json-file: ./global.json
+      - name: Assert BOTH 8.0.1xx AND 9.0.xxx installed
+        shell: bash
+        run: |
+          SDKS=$(dotnet --list-sdks)
+          echo "$SDKS"
+          if ! echo "$SDKS" | grep -qP "^8\.0\.1[0-9]{2}"; then
+            echo "❌ 8.0.1xx not found"; exit 1
+          fi
+          if ! echo "$SDKS" | grep -q "^9\.0\."; then
+            echo "❌ 9.0.xxx not found"; exit 1
+          fi
+          echo "✅ Both present"
+      - run: dotnet build SampleApp/SampleApp.csproj && dotnet run --project SampleApp/SampleApp.csproj

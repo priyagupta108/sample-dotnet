@@ -1,0 +1,37 @@
+name: "rollForward latestPatch + quality:ga (valid major)"
+# global.json: 8.0.100 + latestPatch → 8.0.1xx
+# dotnet-quality: ga → major=8 > 5 so quality applies
+# Expected: stable 8.0.1xx GA build
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-quality-ga-valid:
+    name: "latestPatch + quality:ga | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-11-arm, macos-15-intel, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"8.0.100","rollForward":"latestPatch"}}' > global.json
+      - name: Setup dotnet + quality:ga
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+          dotnet-quality: 'ga'
+      - name: Assert stable 8.0.1xx
+        shell: bash
+        run: |
+          V=$(dotnet --version)
+          if [[ ! "$V" =~ ^8\.0\.1[0-9]{2}$ ]]; then
+            echo "❌ Expected stable 8.0.1xx but got $V"; exit 1
+          fi
+          if [[ "$V" == *"-"* ]]; then
+            echo "⚠️ Got preview — quality:ga not applied"; exit 1
+          fi
+          echo "✅ $V — stable GA confirmed"
+      - run: dotnet build SampleApp/SampleApp.csproj && dotnet run --project SampleApp/SampleApp.csproj

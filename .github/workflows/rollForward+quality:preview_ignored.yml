@@ -1,0 +1,35 @@
+name: "rollForward + quality ignored (major < 6)"
+# global.json: 3.0.100 + latestMinor → 3.1.xxx
+# dotnet-quality: preview → major=3 < 5 → quality IGNORED + warning logged
+# Expected: 3.1.xxx installed, warning in logs, no crash
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  rf-quality-ignored-old-major:
+    name: "latestMinor + quality:preview ignored (major 3) | ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-14]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: echo '{"sdk":{"version":"3.0.100","rollForward":"latestMinor"}}' > global.json
+      - name: Setup dotnet + quality:preview (major < 6 — should warn + ignore)
+        uses: js6pak/setup-dotnet@feat/support-rollForward
+        with:
+          global-json-file: ./global.json
+          dotnet-quality: 'preview'
+        # Check logs for:
+        # "The 'dotnet-quality' input can be used only with major tag higher than 5"
+      - name: Assert 3.1.xxx still installed despite quality input
+        shell: bash
+        run: |
+          V=$(dotnet --version)
+          if [[ ! "$V" =~ ^3\.1\. ]]; then
+            echo "❌ Expected 3.1.xxx but got $V"; exit 1
+          fi
+          echo "✅ $V — quality ignored correctly, rollForward still worked"
