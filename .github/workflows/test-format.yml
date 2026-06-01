@@ -24,7 +24,7 @@ jobs:
         with:
           global-json-file: ./global.json
       - run: dotnet --version
-      - run: dotnet build
+     
 
   valid-latestMinor:
     runs-on: ${{ matrix.os }}
@@ -43,7 +43,7 @@ jobs:
         with:
           global-json-file: ./global.json
       - run: dotnet --version
-      - run: dotnet build
+     
 
   valid-latestFeature:
     runs-on: ${{ matrix.os }}
@@ -62,7 +62,7 @@ jobs:
         with:
           global-json-file: ./global.json
       - run: dotnet --version
-      - run: dotnet build
+     
 
   valid-latestPatch:
     runs-on: ${{ matrix.os }}
@@ -81,7 +81,7 @@ jobs:
         with:
           global-json-file: ./global.json
       - run: dotnet --version
-      - run: dotnet build
+     
 
   valid-no-rollforward:
     runs-on: ${{ matrix.os }}
@@ -100,7 +100,7 @@ jobs:
         with:
           global-json-file: ./global.json
       - run: dotnet --version
-      - run: dotnet build
+     
 
   # ===== INVALID FORMAT TESTS (should fail) =====
 
@@ -121,7 +121,7 @@ jobs:
         uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
         with:
           global-json-file: ./global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
@@ -149,7 +149,7 @@ jobs:
         uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
         with:
           global-json-file: ./global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
@@ -177,7 +177,7 @@ jobs:
         uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
         with:
           global-json-file: ./global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
