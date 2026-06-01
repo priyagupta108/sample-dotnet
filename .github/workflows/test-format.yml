@@ -1,0 +1,189 @@
+name: Test global.json SDK version validation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # ===== VALID FORMAT TESTS =====
+
+  valid-latestMajor:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMajor"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+      - run: dotnet --version
+      - run: dotnet build
+
+  valid-latestMinor:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMinor"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+      - run: dotnet --version
+      - run: dotnet build
+
+  valid-latestFeature:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestFeature"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+      - run: dotnet --version
+      - run: dotnet build
+
+  valid-latestPatch:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestPatch"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+      - run: dotnet --version
+      - run: dotnet build
+
+  valid-no-rollforward:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+      - run: dotnet --version
+      - run: dotnet build
+
+  # ===== INVALID FORMAT TESTS (should fail) =====
+
+  invalid-short-version:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0","rollForward":"latestPatch"}}' > global.json
+      - name: Setup dotnet (should fail)
+        id: setup
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" == "failure" ]; then
+            echo "✅ Correctly failed for invalid version format"
+          else
+            echo "❌ Should have failed but didn't"
+            exit 1
+          fi
+
+  invalid-single-digit-patch:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"3.1.0","rollForward":"latestMajor"}}' > global.json
+      - name: Setup dotnet (should fail)
+        id: setup
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" == "failure" ]; then
+            echo "✅ Correctly failed for invalid version format"
+          else
+            echo "❌ Should have failed but didn't"
+            exit 1
+          fi
+
+  invalid-major-only:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8","rollForward":"latestMinor"}}' > global.json
+      - name: Setup dotnet (should fail)
+        id: setup
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: ./global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" == "failure" ]; then
+            echo "✅ Correctly failed for invalid version format"
+          else
+            echo "❌ Should have failed but didn't"
+            exit 1
+          fi
