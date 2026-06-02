@@ -1,0 +1,142 @@
+name: Test rollForward behavior with official scripts
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test-stable-latestMajor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear existing dotnet
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          mkdir -p /usr/share/dotnet
+          echo "/usr/share/dotnet" >> $GITHUB_PATH
+          echo "DOTNET_ROOT=/usr/share/dotnet" >> $GITHUB_ENV
+
+      - name: Install latest LTS SDK manually
+        run: |
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel LTS --install-dir /usr/share/dotnet
+
+      - name: Show installed SDKs
+        run: dotnet --list-sdks
+
+      - name: Test 8.0.100 + latestMajor resolves to installed SDK
+        run: |
+          mkdir test-8.0 && cd test-8.0
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMajor"}}' > global.json
+          cat global.json
+          echo "Selected SDK:"
+          dotnet --version
+          # Expect: 10.0.x (highest installed >= 8.0.100) ✅
+
+      - name: Test 3.1.0 + latestMajor resolves to installed SDK
+        run: |
+          mkdir test-3.1 && cd test-3.1
+          echo '{"sdk":{"version":"3.1.0","rollForward":"latestMajor"}}' > global.json
+          cat global.json
+          echo "Selected SDK:"
+          dotnet --version
+          # Expect: 10.0.x (highest installed >= 3.1.0) ✅
+
+  test-preview-latestMajor-fails-without-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear existing dotnet
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          mkdir -p /usr/share/dotnet
+          echo "/usr/share/dotnet" >> $GITHUB_PATH
+          echo "DOTNET_ROOT=/usr/share/dotnet" >> $GITHUB_ENV
+
+      - name: Install only latest LTS SDK
+        run: |
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel LTS --install-dir /usr/share/dotnet
+
+      - name: Show installed SDKs
+        run: dotnet --list-sdks
+
+      - name: Test 11.0.100-preview.4 + latestMajor FAILS
+        run: |
+          mkdir test-preview-fail && cd test-preview-fail
+          echo '{"sdk":{"version":"11.0.100-preview.4.26230.115","rollForward":"latestMajor"}}' > global.json
+          cat global.json
+          echo "Attempting to resolve SDK..."
+          if dotnet --version 2>&1; then
+            echo "ERROR: Should have failed but didn't!"
+            exit 1
+          else
+            echo "EXPECTED: Failed because no installed SDK >= 11.0.100-preview.4 ✅"
+          fi
+
+  test-preview-latestMajor-works-with-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear existing dotnet
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          mkdir -p /usr/share/dotnet
+          echo "/usr/share/dotnet" >> $GITHUB_PATH
+          echo "DOTNET_ROOT=/usr/share/dotnet" >> $GITHUB_ENV
+
+      - name: Install LTS and preview SDK
+        run: |
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel LTS --install-dir /usr/share/dotnet
+          ./dotnet-install.sh --version 11.0.100-preview.4.26230.115 --install-dir /usr/share/dotnet
+
+      - name: Show installed SDKs
+        run: dotnet --list-sdks
+
+      - name: Test 11.0.100-preview.4 + latestMajor resolves to preview
+        run: |
+          mkdir test-preview-ok && cd test-preview-ok
+          echo '{"sdk":{"version":"11.0.100-preview.4.26230.115","rollForward":"latestMajor"}}' > global.json
+          cat global.json
+          echo "Selected SDK:"
+          dotnet --version
+          # Expect: 11.0.100-preview.4.26230.115 ✅
+
+  test-allowPrerelease-interaction:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear existing dotnet
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          mkdir -p /usr/share/dotnet
+          echo "/usr/share/dotnet" >> $GITHUB_PATH
+          echo "DOTNET_ROOT=/usr/share/dotnet" >> $GITHUB_ENV
+
+      - name: Install LTS and preview SDK
+        run: |
+          curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel LTS --install-dir /usr/share/dotnet
+          ./dotnet-install.sh --version 11.0.100-preview.4.26230.115 --install-dir /usr/share/dotnet
+
+      - name: Show installed SDKs
+        run: dotnet --list-sdks
+
+      - name: Test allowPrerelease=false excludes previews
+        run: |
+          mkdir test-no-pre && cd test-no-pre
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMajor","allowPrerelease":false}}' > global.json
+          cat global.json
+          echo "Selected SDK:"
+          dotnet --version
+          # Expect: 10.0.x (skips 11.0-preview) ✅
+
+      - name: Test allowPrerelease=true includes previews
+        run: |
+          mkdir test-with-pre && cd test-with-pre
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMajor","allowPrerelease":true}}' > global.json
+          cat global.json
+          echo "Selected SDK:"
+          dotnet --version
+          # Expect: 11.0.100-preview.4 (highest installed) ✅
