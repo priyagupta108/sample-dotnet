@@ -23,7 +23,7 @@ jobs:
           echo '{"sdk":{"version":"8.0.100","rollForward":"latestFeature"}}' > ./subdirectory/global.json
       - name: Setup dotnet
         uses: js6pak/setup-dotnet@feat/support-rollForward
-        with:
+        with: 
           dotnet-version: latest
           dotnet-channel: LTS
           global-json-file: ./subdirectory/global.json

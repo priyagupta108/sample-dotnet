@@ -1,0 +1,62 @@
+name: Validate global.json
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ubuntu runners ship with a .NET host already, which is enough for the
+      # host to parse global.json. We do NOT use setup-dotnet here because it
+      # would abort on the first invalid file — we want to test them all.
+      - name: Write multiple global.json files (valid + invalid)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          write() {
+            mkdir -p "case-$1"
+            echo "{\"sdk\":{\"version\":\"$2\",\"rollForward\":\"latestFeature\"}}" > "./case-$1/global.json"
+            echo "case-$1 -> version: $2"
+          }
+
+          # --- valid formats ---
+          write "valid-1" "8.0.100"
+          write "valid-2" "8.0.100-preview.5"
+          write "valid-3" "9.0.301"
+
+          # --- invalid formats ---
+          write "invalid-1" "8.0"          # missing patch
+          write "invalid-2" "v8.0.100"     # leading 'v' not allowed
+          write "invalid-3" "eight.0.100"  # non-numeric
+
+      # Let dotnet validate each file. We run a dotnet command inside each
+      # subdirectory; the host parses that dir's global.json and FAILS on a
+      # bad version format. We capture the result instead of aborting.
+      - name: Let dotnet validate each global.json
+        shell: bash
+        run: |
+          overall=0
+          for dir in case-*; do
+            version=$(grep -o '"version":"[^"]*"' "$dir/global.json")
+            echo "::group::Validating $dir ($version)"
+
+            # Run dotnet inside the directory so it reads that global.json.
+            if (cd "$dir" && dotnet --version) > out.log 2>&1; then
+              echo "✅ VALID: dotnet accepted $dir"
+            else
+              # Distinguish "invalid format/parse error" from "valid but SDK not installed".
+              if grep -qiE "not a valid version|parsing the global.json|global.json.*invalid" out.log; then
+                echo "❌ INVALID FORMAT: dotnet rejected $dir"
+              else
+                echo "⚠️  Format OK but no matching SDK installed for $dir"
+              fi
+            fi
+
+            cat out.log
+            echo "::endgroup::"
+          done
