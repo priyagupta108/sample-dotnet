@@ -12,8 +12,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        version:
+          - "11.0.100-preview.4.26230.115"
+          - "10.0.300"
+          - "8.0.100"
+          - "10"
+          - "10.0"
+          - "10.0.x"
+          - ">=10.0.100"
+          - "99.0.100"
         include:
-          # ✅ Valid: full version numbers
           - version: "11.0.100-preview.4.26230.115"
             version_label: "preview-full (valid)"
             expect_success: true
@@ -23,28 +31,18 @@ jobs:
           - version: "8.0.100"
             version_label: "older-stable (valid)"
             expect_success: true
-
-          # ❌ Invalid: major only (docs say not supported)
           - version: "10"
             version_label: "major-only (invalid)"
             expect_success: false
-
-          # ❌ Invalid: major.minor only (docs say not supported)
           - version: "10.0"
             version_label: "major.minor (invalid)"
             expect_success: false
-
-          # ❌ Invalid: wildcard (docs say not supported)
           - version: "10.0.x"
             version_label: "wildcard (invalid)"
             expect_success: false
-
-          # ❌ Invalid: version range (docs say not supported)
           - version: ">=10.0.100"
             version_label: "range (invalid)"
             expect_success: false
-
-          # ❌ Invalid: non-existent version (valid format but doesn't exist)
           - version: "99.0.100"
             version_label: "non-existent (invalid)"
             expect_success: false
@@ -63,7 +61,6 @@ jobs:
           echo "=== global.json ==="
           cat global.json
 
-      # ---------- Linux / macOS ----------
       - name: Install via dotnet-install.sh (non-Windows)
         if: runner.os != 'Windows'
         shell: bash
@@ -73,22 +70,17 @@ jobs:
           set -euo pipefail
           VERSION="${{ matrix.version }}"
           echo "Installing version: $VERSION"
-
           curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
-
           INSTALL_DIR="$RUNNER_TEMP/dotnet"
-
           ./dotnet-install.sh \
             --version "$VERSION" \
             --install-dir "$INSTALL_DIR" \
             --skip-non-versioned-files \
             --verbose
-
           echo "=== Installed SDKs ==="
           "$INSTALL_DIR/dotnet" --list-sdks
 
-      # ---------- Windows ----------
       - name: Install via dotnet-install.ps1 (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -98,17 +90,13 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $version = "${{ matrix.version }}"
           Write-Host "Installing version: $version"
-
           Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile dotnet-install.ps1
-
           $installDir = Join-Path $env:RUNNER_TEMP 'dotnet'
-
           ./dotnet-install.ps1 `
             -Version $version `
             -InstallDir $installDir `
             -SkipNonVersionedFiles `
             -Verbose
-
           Write-Host "=== Installed SDKs ==="
           & "$installDir/dotnet.exe" --list-sdks
 
@@ -117,18 +105,15 @@ jobs:
         run: |
           set -euo pipefail
           EXPECT_SUCCESS="${{ matrix.expect_success }}"
-
           if [ "$RUNNER_OS" = "Windows" ]; then
             STEP_OUTCOME="${{ steps.install_win.outcome }}"
           else
             STEP_OUTCOME="${{ steps.install_nix.outcome }}"
           fi
-
           echo "Version: ${{ matrix.version }}"
           echo "Label: ${{ matrix.version_label }}"
           echo "Step outcome: $STEP_OUTCOME"
           echo "Expected success: $EXPECT_SUCCESS"
-
           if [ "$EXPECT_SUCCESS" = "true" ] && [ "$STEP_OUTCOME" = "success" ]; then
             echo "✅ PASS — Valid version installed successfully"
           elif [ "$EXPECT_SUCCESS" = "false" ] && [ "$STEP_OUTCOME" = "failure" ]; then
