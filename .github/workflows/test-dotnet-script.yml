@@ -68,9 +68,11 @@ jobs:
           echo "=== Installed SDKs ==="
           "$INSTALL_DIR/dotnet" --list-sdks
 
+
+
       - name: Verify result matches expectation
         run: |
-          set -euo pipefail
+          dotnet --info
           EXPECT_SUCCESS="${{ matrix.expect_success }}"
           STEP_OUTCOME="${{ steps.install.outcome }}"
 
