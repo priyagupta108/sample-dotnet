@@ -1,16 +1,61 @@
-name: Test Invalid SDK Version
+name: Test Invalid SDK Format
 
 on: push
 
 jobs:
-  build:
+  test-partial:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create global.json with invalid version
+      - name: Write global.json
+        shell: bash
         run: |
-          echo '{ "sdk": { "version": "99.0.100" } }' > global.json
+          echo '{"sdk":{"version":"10","rollForward":"latestFeature"}}' > global.json
+    
 
-      - name: Run dotnet command
-        run: dotnet build
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Check version
+        run: dotnet --version
+
+  test-two-part:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0","rollForward":"latestFeature"}}' > global.json
+    
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Check version
+        run: dotnet --version
+
+  test-wildcard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json
+        shell: bash
+        run: |
+            echo '{"sdk":{"version":"10.0.x","rollForward":"latestFeature"}}' > global.json
+      
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Check version
+        run: dotnet --version
