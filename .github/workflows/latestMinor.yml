@@ -1,7 +1,7 @@
 name: "latestMinor"
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:

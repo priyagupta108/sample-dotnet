@@ -3,7 +3,7 @@ name: "rollForward latestPatch + quality:ga (valid major)"
 # dotnet-quality: ga → major=8 > 5 so quality applies
 # Expected: stable 8.0.1xx GA build
 on:
-  push:
+  # push:
   workflow_dispatch:
 jobs:
   rf-quality-ga-valid:

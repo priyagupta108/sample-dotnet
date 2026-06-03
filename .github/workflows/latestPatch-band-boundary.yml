@@ -1,7 +1,7 @@
 name: "latestPatch-band-boundary"
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:

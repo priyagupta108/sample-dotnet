@@ -4,7 +4,7 @@ name: "rollForward + dotnet-channel:LTS"
 # Expected: 8.0.xxx from rollForward + latest LTS both present
 # channel:LTS must NOT affect global.json resolution
 on:
-  push:
+  # push:
   workflow_dispatch:
 jobs:
   rf-channel-lts:

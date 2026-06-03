@@ -1,7 +1,7 @@
 name: "no-rollforward"
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:

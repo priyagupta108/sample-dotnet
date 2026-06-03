@@ -3,7 +3,7 @@ name: "rollForward + dotnet-version:latest"
 # dotnet-version: latest             → latest GA
 # Expected: BOTH 8.x AND latest (9.x or 10.x) present
 on:
-  push:
+  # push:
   workflow_dispatch:
 jobs:
   rf-dotnet-version-latest:

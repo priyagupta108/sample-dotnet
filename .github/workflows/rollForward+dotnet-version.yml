@@ -3,7 +3,7 @@ name: "rollForward + explicit dotnet-version"
 # dotnet-version: 9.0.x              → 9.0.xxx
 # Expected: BOTH present side by side
 on:
-  push:
+  # push:
   workflow_dispatch:
 jobs:
   rf-dotnet-version-explicit:

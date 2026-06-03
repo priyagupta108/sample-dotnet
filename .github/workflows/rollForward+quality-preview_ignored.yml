@@ -3,7 +3,7 @@ name: "rollForward + quality ignored (major < 6)"
 # dotnet-quality: preview → major=3 < 5 → quality IGNORED + warning logged
 # Expected: 3.1.xxx installed, warning in logs, no crash
 on:
-  push:
+  # push:
   workflow_dispatch:
 jobs:
   rf-quality-ignored-old-major:

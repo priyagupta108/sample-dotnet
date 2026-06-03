@@ -1,7 +1,7 @@
 name: "issue448-repro-v5"
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:

@@ -3,7 +3,7 @@ name: "rollForward + dotnet-channel:STS"
 # dotnet-version: latest + channel: STS → latest STS SDK
 # Expected: 3.1.xxx from rollForward + latest STS both present
 on:
-  push:
+  # push:
   workflow_dispatch:
 jobs:
   rf-channel-sts:

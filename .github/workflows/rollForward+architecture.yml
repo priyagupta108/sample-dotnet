@@ -1,7 +1,7 @@
 name: "rollForward + architecture"
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:
