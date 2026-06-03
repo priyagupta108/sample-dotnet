@@ -1,29 +1,62 @@
-name: Test preview install via official dotnet-install script
+name: Test SDK version formats (valid vs invalid per docs)
 
 on:
   workflow_dispatch:
   push:
-    
 
 jobs:
-  install-preview:
-    name: ${{ matrix.os }}
+  install-sdk:
+    name: "${{ matrix.version_label }} on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          # ✅ Valid: full version numbers
+          - version: "11.0.100-preview.4.26230.115"
+            version_label: "preview-full (valid)"
+            expect_success: true
+          - version: "10.0.300"
+            version_label: "stable-full (valid)"
+            expect_success: true
+          - version: "8.0.100"
+            version_label: "older-stable (valid)"
+            expect_success: true
+
+          # ❌ Invalid: major only (docs say not supported)
+          - version: "10"
+            version_label: "major-only (invalid)"
+            expect_success: false
+
+          # ❌ Invalid: major.minor only (docs say not supported)
+          - version: "10.0"
+            version_label: "major.minor (invalid)"
+            expect_success: false
+
+          # ❌ Invalid: wildcard (docs say not supported)
+          - version: "10.0.x"
+            version_label: "wildcard (invalid)"
+            expect_success: false
+
+          # ❌ Invalid: version range (docs say not supported)
+          - version: ">=10.0.100"
+            version_label: "range (invalid)"
+            expect_success: false
+
+          # ❌ Invalid: non-existent version (valid format but doesn't exist)
+          - version: "99.0.100"
+            version_label: "non-existent (invalid)"
+            expect_success: false
 
     steps:
-      - name: Create global.json with preview version + rollForward
+      - name: Create global.json
         shell: bash
         run: |
-          cat > global.json <<'EOF'
+          cat > global.json <<EOF
           {
             "sdk": {
-              "version": "11.0.100-preview.4.26230.115",
-              "allowPrerelease": false,
-              "rollForward": "latestMajor"
+              "version": "${{ matrix.version }}"
             }
           }
           EOF
@@ -31,22 +64,21 @@ jobs:
           cat global.json
 
       # ---------- Linux / macOS ----------
-      - name: Install via official install-dotnet.sh (non-Windows)
+      - name: Install via dotnet-install.sh (non-Windows)
         if: runner.os != 'Windows'
         shell: bash
+        continue-on-error: true
+        id: install_nix
         run: |
           set -euo pipefail
-          # Read exact version from global.json
-          VERSION=$(grep -oE '"version"[^,]*' global.json | head -1 | cut -d'"' -f4)
-          echo "Parsed version: $VERSION"
+          VERSION="${{ matrix.version }}"
+          echo "Installing version: $VERSION"
 
-          # Download the official installer script
           curl -sSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
           chmod +x dotnet-install.sh
 
           INSTALL_DIR="$RUNNER_TEMP/dotnet"
 
-          # Install the EXACT preview version (Approach 1 behavior)
           ./dotnet-install.sh \
             --version "$VERSION" \
             --install-dir "$INSTALL_DIR" \
@@ -57,14 +89,15 @@ jobs:
           "$INSTALL_DIR/dotnet" --list-sdks
 
       # ---------- Windows ----------
-      - name: Install via official dotnet-install.ps1 (Windows)
+      - name: Install via dotnet-install.ps1 (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
+        continue-on-error: true
+        id: install_win
         run: |
           $ErrorActionPreference = 'Stop'
-          $json = Get-Content global.json -Raw | ConvertFrom-Json
-          $version = $json.sdk.version
-          Write-Host "Parsed version: $version"
+          $version = "${{ matrix.version }}"
+          Write-Host "Installing version: $version"
 
           Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile dotnet-install.ps1
 
@@ -79,20 +112,28 @@ jobs:
           Write-Host "=== Installed SDKs ==="
           & "$installDir/dotnet.exe" --list-sdks
 
-      - name: Verify the preview SDK is present
+      - name: Verify result matches expectation
         shell: bash
         run: |
           set -euo pipefail
+          EXPECT_SUCCESS="${{ matrix.expect_success }}"
+
           if [ "$RUNNER_OS" = "Windows" ]; then
-            DOTNET="$RUNNER_TEMP/dotnet/dotnet.exe"
+            STEP_OUTCOME="${{ steps.install_win.outcome }}"
           else
-            DOTNET="$RUNNER_TEMP/dotnet/dotnet"
+            STEP_OUTCOME="${{ steps.install_nix.outcome }}"
           fi
-          EXPECTED="11.0.100-preview.4.26230.115"
-          if "$DOTNET" --list-sdks | grep -q "$EXPECTED"; then
-            echo "✅ Preview SDK $EXPECTED installed successfully"
+
+          echo "Version: ${{ matrix.version }}"
+          echo "Label: ${{ matrix.version_label }}"
+          echo "Step outcome: $STEP_OUTCOME"
+          echo "Expected success: $EXPECT_SUCCESS"
+
+          if [ "$EXPECT_SUCCESS" = "true" ] && [ "$STEP_OUTCOME" = "success" ]; then
+            echo "✅ PASS — Valid version installed successfully"
+          elif [ "$EXPECT_SUCCESS" = "false" ] && [ "$STEP_OUTCOME" = "failure" ]; then
+            echo "✅ PASS — Invalid version correctly rejected"
           else
-            echo "❌ Preview SDK $EXPECTED NOT found"
-            "$DOTNET" --list-sdks
+            echo "❌ FAIL — Unexpected result"
             exit 1
           fi
