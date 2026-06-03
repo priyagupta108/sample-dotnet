@@ -11,8 +11,7 @@ jobs:
       - name: Write global.json
         shell: bash
         run: |
-          echo '{"sdk":{"version":" "11.0.100-preview.4.26230.115","rollForward":"latestFeature"}}' > global.json
-    
+          echo '{"sdk":{"version":"11.0.100-preview.4.26230.115","rollForward":"latestFeature"}}' > global.json
 
       - name: Check version
         run: dotnet --info
