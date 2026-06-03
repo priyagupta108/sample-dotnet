@@ -3,7 +3,7 @@ name: Test preview install via official dotnet-install script
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    
 
 jobs:
   install-preview:

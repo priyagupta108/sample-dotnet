@@ -1,7 +1,7 @@
 name: Test global.json SDK version validation
 
 on:
-  push:
+  # push:
   pull_request:
 
 jobs:
