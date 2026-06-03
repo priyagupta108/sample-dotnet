@@ -3,7 +3,21 @@ name: Test Invalid SDK Format
 on: push
 
 jobs:
-  test-partial:
+ test-preview-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":" "11.0.100-preview.4.26230.115","rollForward":"latestFeature"}}' > global.json
+    
+
+      - name: Check version
+        run: dotnet --info
+
+ test-partial:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,15 +28,10 @@ jobs:
           echo '{"sdk":{"version":"10","rollForward":"latestFeature"}}' > global.json
     
 
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-
       - name: Check version
-        run: dotnet --version
+        run: dotnet --info
 
-  test-two-part:
+ test-two-part:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,15 +42,10 @@ jobs:
           echo '{"sdk":{"version":"10.0","rollForward":"latestFeature"}}' > global.json
     
 
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-
       - name: Check version
-        run: dotnet --version
+        run: dotnet --info
 
-  test-wildcard:
+ test-wildcard:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,10 +56,5 @@ jobs:
             echo '{"sdk":{"version":"10.0.x","rollForward":"latestFeature"}}' > global.json
       
 
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
-
       - name: Check version
-        run: dotnet --version
+        run: dotnet --info
