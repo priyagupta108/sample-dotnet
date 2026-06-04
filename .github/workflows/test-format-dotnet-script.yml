@@ -15,7 +15,19 @@ jobs:
 
       - name: Check version
         run: dotnet --info
+        
+ test-preview-format-invalid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
 
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"11.0.100-preview.4","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
  test-partial:
     runs-on: ubuntu-latest
     steps:
