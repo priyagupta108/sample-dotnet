@@ -15,6 +15,9 @@ jobs:
           - version: "11.0.100-preview.4.26230.115"
             version_label: "preview-full (valid)"
             expect_success: true
+          - version: "11.0.100-preview.4"
+            version_label: "preview (valid)"
+            expect_success: true
           - version: "10.0.300"
             version_label: "stable-full (valid)"
             expect_success: true
