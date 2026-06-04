@@ -1,0 +1,37 @@
+name: "Test: Quality precedence"
+on: push
+
+jobs:
+  input-quality-wins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - run: dotnet --version
+
+  inferred-quality-used:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --version
+
+  stable-no-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --version

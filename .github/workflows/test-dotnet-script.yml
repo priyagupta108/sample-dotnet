@@ -2,7 +2,7 @@ name: Test SDK version formats (valid vs invalid per docs)
 
 on:
   workflow_dispatch:
-  push:
+  # push:
 
 jobs:
   install-sdk:
