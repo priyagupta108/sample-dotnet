@@ -14,6 +14,18 @@ jobs:
           dotnet-quality: ga
       - run: dotnet --version
 
+  input-quality-wins-v5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "9.0.100", "rollForward": "latestFeature"}}' > global.json
+      - uses: actions/setup-dotnet@v5.2.0
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - run: dotnet --version    
+
   inferred-quality-used:
     runs-on: ubuntu-latest
     steps:
@@ -34,4 +46,64 @@ jobs:
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
         with:
           global-json-file: global.json
+      - run: dotnet --version
+
+  stable-no-quality-ga:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - run: dotnet --version     
+
+  inferred-quality-used-v5-without-input:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
+      - uses: actions/setup-dotnet@v5.2.0
+        with:
+          global-json-file: global.json
+      - run: dotnet --version
+
+
+  inferred-quality-used-v5-with-input:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
+      - uses: actions/setup-dotnet@v5.2.0
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - run: dotnet --version
+
+  inferred-quality-used-v5-without-input-9:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
+      - uses: actions/setup-dotnet@v5.2.0
+        with:
+          global-json-file: global.json
+      - run: dotnet --version
+
+
+  inferred-quality-used-v5-with-input-9:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
+      - uses: actions/setup-dotnet@v5.2.0
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
       - run: dotnet --version
