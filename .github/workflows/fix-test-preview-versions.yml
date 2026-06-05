@@ -1,0 +1,118 @@
+name: "Test: Preview Versions with rollForward"
+
+on:
+  push:
+    branches:
+      - validate-global-json-sdk-version
+  workflow_dispatch:
+
+jobs:
+  # ===== PREVIEW + latestPatch =====
+  preview-latestPatch:
+    name: "Preview + latestPatch"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestPatch"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 9.0.1xx"
+          dotnet --list-sdks
+
+  # ===== PREVIEW + latestFeature =====
+  preview-latestFeature:
+    name: "Preview + latestFeature"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 9.0"
+          dotnet --list-sdks
+
+  # ===== PREVIEW + latestMinor =====
+  preview-latestMinor:
+    name: "Preview + latestMinor"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMinor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 9"
+          dotnet --list-sdks
+
+  # ===== PREVIEW + latestMajor =====
+  preview-latestMajor:
+    name: "Preview + latestMajor"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via 'latest' with quality 'preview'"
+          dotnet --list-sdks
+
+  # ===== PREVIEW + latestMajor + dotnet-quality override =====
+  preview-latestMajor-quality-ga:
+    name: "Preview + latestMajor + dotnet-quality: ga"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - name: Verify
+        run: |
+          echo "Expected: installs latest GA (input quality overrides inferred preview)"
+          dotnet --list-sdks
+
+  # ===== PREVIEW + latestMajor + dotnet-quality: preview =====
+  preview-latestMajor-quality-preview:
+    name: "Preview + latestMajor + dotnet-quality: preview"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+          dotnet-quality: preview
+      - name: Verify
+        run: |
+          echo "Expected: installs latest preview SDK"
+          dotnet --list-sdks

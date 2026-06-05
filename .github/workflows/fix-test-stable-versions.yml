@@ -1,0 +1,120 @@
+name: "Test: Stable Versions with rollForward"
+
+on:
+  push:
+    branches:
+      - validate-global-json-sdk-version
+  workflow_dispatch:
+
+jobs:
+  # ===== STABLE + latestPatch =====
+  stable-latestPatch:
+    name: "Stable + latestPatch"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestPatch"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 8.0.1xx (latest patch in 1xx band)"
+          dotnet --list-sdks
+
+  # ===== STABLE + latestFeature =====
+  stable-latestFeature:
+    name: "Stable + latestFeature"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestFeature"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 8.0 (latest feature band in 8.0)"
+          dotnet --list-sdks
+
+  # ===== STABLE + latestMinor =====
+  stable-latestMinor:
+    name: "Stable + latestMinor"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestMinor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 8 (latest minor in major 8)"
+          dotnet --list-sdks
+
+  # ===== STABLE + latestMajor =====
+  stable-latestMajor:
+    name: "Stable + latestMajor"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestMajor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - name: Verify
+        run: |
+          echo "Expected: installs 'latest' (no quality, gets latest stable)"
+          dotnet --list-sdks
+
+  # ===== STABLE + latestMajor + dotnet-quality: ga =====
+  stable-latestMajor-quality-ga:
+    name: "Stable + latestMajor + dotnet-quality: ga"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "8.0.100", "rollForward": "latestMajor"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - name: Verify
+        run: |
+          echo "Expected: installs latest GA SDK"
+          dotnet --list-sdks
+
+  # ===== STABLE + latestFeature + dotnet-quality: ga =====
+  stable-latestFeature-quality-ga:
+    name: "Stable + latestFeature + dotnet-quality: ga"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          echo '{"sdk": {"version": "9.0.100", "rollForward": "latestFeature"}}' > global.json
+          echo "=== global.json ==="
+          cat global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+          dotnet-quality: ga
+      - name: Verify
+        run: |
+          echo "Expected: installs via --channel 9.0 --quality ga"
+          dotnet --list-sdks
+
+ 

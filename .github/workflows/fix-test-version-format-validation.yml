@@ -1,0 +1,440 @@
+name: "Test: Version Format Validation"
+
+on:
+  push:
+   
+  workflow_dispatch:
+
+jobs:
+  # =============================================================
+  # ✅ VALID STABLE VERSIONS
+  # =============================================================
+  valid-9-0-100:
+    name: "✅ Valid: 9.0.100 (GA, band 1, patch 00)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"9.0.100","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-8-0-101:
+    name: "✅ Valid: 8.0.101 (GA, band 1, patch 01)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.101","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-8-0-200:
+    name: "✅ Valid: 8.0.200 (GA, band 2)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.200","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+
+  valid-5-0-102:
+    name: "✅ Valid: 5.0.102 (older SDK)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"5.0.102","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-3-1-201:
+    name: "✅ Valid: 3.1.201 (older SDK)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"3.1.201","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+
+  # =============================================================
+  # ✅ VALID PRERELEASE VERSIONS
+  # =============================================================
+  valid-preview:
+    name: "✅ Valid: 9.0.100-preview.4.26230.115 (preview)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"9.0.100-preview.4.26230.115","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-preview-simple:
+    name: "✅ Valid: 9.0.100-preview.1 (simple preview)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"9.0.100-preview.1","rollForward":"latestFeature"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-rc:
+    name: "✅ Valid: 9.0.100-rc.1.24452.12 (release candidate)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"9.0.100-rc.1.24452.12","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-rc-simple:
+    name: "✅ Valid: 10.0.100-rc.2 (simple RC)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.100-rc.2","rollForward":"latestFeature"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-alpha:
+    name: "✅ Valid: 10.0.100-alpha.1.25001.1 (alpha/daily)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.100-alpha.1.25001.1","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  valid-dev:
+    name: "✅ Valid: 10.0.100-dev (dev build)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.100-dev","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      - run: dotnet --list-sdks
+
+  # =============================================================
+  # ❌ INVALID VERSIONS (should fail with clear error)
+  # =============================================================
+  invalid-major-only:
+    name: "❌ Invalid: 10 (major only)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '10'"
+          else
+            echo "❌ Should have failed for '10'"
+            exit 1
+          fi
+
+  invalid-major-minor-10-0:
+    name: "❌ Invalid: 10.0 (missing patch)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '10.0'"
+          else
+            echo "❌ Should have failed for '10.0'"
+            exit 1
+          fi
+
+
+  invalid-wildcard:
+    name: "❌ Invalid: 10.0.x (wildcard)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.x","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '10.0.x'"
+          else
+            echo "❌ Should have failed for '10.0.x'"
+            exit 1
+          fi
+
+  invalid-channel-format:
+    name: "❌ Invalid: 10.0.1xx (channel format)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.1xx","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '10.0.1xx'"
+          else
+            echo "❌ Should have failed for '10.0.1xx'"
+            exit 1
+          fi
+
+  invalid-latest-keyword:
+    name: "❌ Invalid: latest (keyword, not version)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"latest","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected 'latest'"
+          else
+            echo "❌ Should have failed for 'latest'"
+            exit 1
+          fi
+
+  invalid-lts-keyword:
+    name: "❌ Invalid: LTS (channel keyword)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"LTS","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected 'LTS'"
+          else
+            echo "❌ Should have failed for 'LTS'"
+            exit 1
+          fi
+
+  invalid-zero-band:
+    name: "❌ Invalid: 8.0.0 (band 0 doesn't exist)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.0","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '8.0.0'"
+          else
+            echo "❌ Should have failed for '8.0.0'"
+            exit 1
+          fi
+
+  invalid-zero-band-099:
+    name: "❌ Invalid: 8.0.099 (band 0 doesn't exist)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.099","rollForward":"latestPatch"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '8.0.099'"
+          else
+            echo "❌ Should have failed for '8.0.099'"
+            exit 1
+          fi
+
+  # =============================================================
+  # ❌ INVALID PRERELEASE FORMATS
+  # =============================================================
+  invalid-preview-zero-band:
+    name: "❌ Invalid: 8.0.000-preview.1 (zero band + preview)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.000-preview.1","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '8.0.000-preview.1'"
+          else
+            echo "❌ Should have failed for '8.0.000-preview.1'"
+            exit 1
+          fi
+
+  invalid-preview-two-part:
+    name: "❌ Invalid: 8.0-preview.1 (missing patch)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0-preview.1","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '8.0-preview.1'"
+          else
+            echo "❌ Should have failed for '8.0-preview.1'"
+            exit 1
+          fi
+
+  invalid-preview-wildcard:
+    name: "❌ Invalid: 8.0.1xx-preview.1 (channel + prerelease)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.1xx-preview.1","rollForward":"latestMajor"}}' > global.json
+      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        id: setup
+        with:
+          global-json-file: global.json
+        continue-on-error: true
+      - name: Verify failure
+        shell: bash
+        run: |
+          if [ "${{ steps.setup.outcome }}" = "failure" ]; then
+            echo "✅ Correctly rejected '8.0.1xx-preview.1'"
+          else
+            echo "❌ Should have failed for '8.0.1xx-preview.1'"
+            exit 1
+          fi

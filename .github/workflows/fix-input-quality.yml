@@ -1,5 +1,7 @@
 name: "Test: Quality precedence"
-on: push
+on:
+  # push:
+  workflow_dispatch:
 
 jobs:
   input-quality-wins:
