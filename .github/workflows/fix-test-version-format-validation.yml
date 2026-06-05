@@ -7,10 +7,10 @@ on:
 
 jobs:
   # =============================================================
-  # ✅ VALID STABLE VERSIONS
+  # VALID STABLE VERSIONS
   # =============================================================
   valid-9-0-100:
-    name: "✅ Valid: 9.0.100 (GA, band 1, patch 00)"
+    name: "Valid: 9.0.100 (GA, band 1, patch 00)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -24,7 +24,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-8-0-101:
-    name: "✅ Valid: 8.0.101 (GA, band 1, patch 01)"
+    name: "Valid: 8.0.101 (GA, band 1, patch 01)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -38,7 +38,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-8-0-200:
-    name: "✅ Valid: 8.0.200 (GA, band 2)"
+    name: "Valid: 8.0.200 (GA, band 2)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -53,7 +53,7 @@ jobs:
 
 
   valid-5-0-102:
-    name: "✅ Valid: 5.0.102 (older SDK)"
+    name: "Valid: 5.0.102 (older SDK)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -67,7 +67,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-3-1-201:
-    name: "✅ Valid: 3.1.201 (older SDK)"
+    name: "Valid: 3.1.201 (older SDK)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -82,10 +82,10 @@ jobs:
 
 
   # =============================================================
-  # ✅ VALID PRERELEASE VERSIONS
+  # VALID PRERELEASE VERSIONS
   # =============================================================
   valid-preview:
-    name: "✅ Valid: 9.0.100-preview.4.26230.115 (preview)"
+    name: "Valid: 9.0.100-preview.4.26230.115 (preview)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -99,7 +99,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-preview-simple:
-    name: "✅ Valid: 9.0.100-preview.1 (simple preview)"
+    name: "Valid: 9.0.100-preview.1 (simple preview)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -113,7 +113,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-rc:
-    name: "✅ Valid: 9.0.100-rc.1.24452.12 (release candidate)"
+    name: "Valid: 9.0.100-rc.1.24452.12 (release candidate)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -127,7 +127,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-rc-simple:
-    name: "✅ Valid: 10.0.100-rc.2 (simple RC)"
+    name: "Valid: 10.0.100-rc.2 (simple RC)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -141,7 +141,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-alpha:
-    name: "✅ Valid: 10.0.100-alpha.1.25001.1 (alpha/daily)"
+    name: "Valid: 10.0.100-alpha.1.25001.1 (alpha/daily)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -155,7 +155,7 @@ jobs:
       - run: dotnet --list-sdks
 
   valid-dev:
-    name: "✅ Valid: 10.0.100-dev (dev build)"
+    name: "Valid: 10.0.100-dev (dev build)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -169,10 +169,10 @@ jobs:
       - run: dotnet --list-sdks
 
   # =============================================================
-  # ❌ INVALID VERSIONS (should fail with clear error)
+  # INVALID VERSIONS (should fail with clear error)
   # =============================================================
   invalid-major-only:
-    name: "❌ Invalid: 10 (major only)"
+    name: "Invalid: 10 (major only)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -184,19 +184,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '10'"
+            echo "Correctly rejected '10'"
           else
-            echo "❌ Should have failed for '10'"
+            echo "Should have failed for '10'"
             exit 1
           fi
 
   invalid-major-minor-10-0:
-    name: "❌ Invalid: 10.0 (missing patch)"
+    name: "Invalid: 10.0 (missing patch)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -208,20 +208,20 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '10.0'"
+            echo "Correctly rejected '10.0'"
           else
-            echo "❌ Should have failed for '10.0'"
+            echo "Should have failed for '10.0'"
             exit 1
           fi
 
 
   invalid-wildcard:
-    name: "❌ Invalid: 10.0.x (wildcard)"
+    name: "Invalid: 10.0.x (wildcard)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -233,19 +233,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '10.0.x'"
+            echo "Correctly rejected '10.0.x'"
           else
-            echo "❌ Should have failed for '10.0.x'"
+            echo "Should have failed for '10.0.x'"
             exit 1
           fi
 
   invalid-channel-format:
-    name: "❌ Invalid: 10.0.1xx (channel format)"
+    name: "Invalid: 10.0.1xx (channel format)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -257,19 +257,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '10.0.1xx'"
+            echo "Correctly rejected '10.0.1xx'"
           else
-            echo "❌ Should have failed for '10.0.1xx'"
+            echo "Should have failed for '10.0.1xx'"
             exit 1
           fi
 
   invalid-latest-keyword:
-    name: "❌ Invalid: latest (keyword, not version)"
+    name: "Invalid: latest (keyword, not version)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -281,19 +281,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected 'latest'"
+            echo "Correctly rejected 'latest'"
           else
-            echo "❌ Should have failed for 'latest'"
+            echo "Should have failed for 'latest'"
             exit 1
           fi
 
   invalid-lts-keyword:
-    name: "❌ Invalid: LTS (channel keyword)"
+    name: "Invalid: LTS (channel keyword)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -305,19 +305,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected 'LTS'"
+            echo "Correctly rejected 'LTS'"
           else
-            echo "❌ Should have failed for 'LTS'"
+            echo "Should have failed for 'LTS'"
             exit 1
           fi
 
   invalid-zero-band:
-    name: "❌ Invalid: 8.0.0 (band 0 doesn't exist)"
+    name: "Invalid: 8.0.0 (band 0 doesn't exist)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -329,19 +329,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '8.0.0'"
+            echo "Correctly rejected '8.0.0'"
           else
-            echo "❌ Should have failed for '8.0.0'"
+            echo "Should have failed for '8.0.0'"
             exit 1
           fi
 
   invalid-zero-band-099:
-    name: "❌ Invalid: 8.0.099 (band 0 doesn't exist)"
+    name: "Invalid: 8.0.099 (band 0 doesn't exist)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -353,22 +353,22 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '8.0.099'"
+            echo "Correctly rejected '8.0.099'"
           else
-            echo "❌ Should have failed for '8.0.099'"
+            echo "Should have failed for '8.0.099'"
             exit 1
           fi
 
   # =============================================================
-  # ❌ INVALID PRERELEASE FORMATS
+  # INVALID PRERELEASE FORMATS
   # =============================================================
   invalid-preview-zero-band:
-    name: "❌ Invalid: 8.0.000-preview.1 (zero band + preview)"
+    name: "Invalid: 8.0.000-preview.1 (zero band + preview)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -380,19 +380,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '8.0.000-preview.1'"
+            echo "Correctly rejected '8.0.000-preview.1'"
           else
-            echo "❌ Should have failed for '8.0.000-preview.1'"
+            echo "Should have failed for '8.0.000-preview.1'"
             exit 1
           fi
 
   invalid-preview-two-part:
-    name: "❌ Invalid: 8.0-preview.1 (missing patch)"
+    name: "Invalid: 8.0-preview.1 (missing patch)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -404,19 +404,19 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '8.0-preview.1'"
+            echo "Correctly rejected '8.0-preview.1'"
           else
-            echo "❌ Should have failed for '8.0-preview.1'"
+            echo "Should have failed for '8.0-preview.1'"
             exit 1
           fi
 
   invalid-preview-wildcard:
-    name: "❌ Invalid: 8.0.1xx-preview.1 (channel + prerelease)"
+    name: "Invalid: 8.0.1xx-preview.1 (channel + prerelease)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -428,13 +428,13 @@ jobs:
         id: setup
         with:
           global-json-file: global.json
-        continue-on-error: true
+        
       - name: Verify failure
         shell: bash
         run: |
           if [ "${{ steps.setup.outcome }}" = "failure" ]; then
-            echo "✅ Correctly rejected '8.0.1xx-preview.1'"
+            echo "Correctly rejected '8.0.1xx-preview.1'"
           else
-            echo "❌ Should have failed for '8.0.1xx-preview.1'"
+            echo "Should have failed for '8.0.1xx-preview.1'"
             exit 1
           fi

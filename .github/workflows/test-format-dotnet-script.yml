@@ -1,7 +1,7 @@
 name: Test Invalid SDK Format
 
 on:
-  # push:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
       - name: Write global.json
         shell: bash
         run: |
-          echo '{"sdk":{"version":"11.0.100-preview.4.26230.115","rollForward":"latestFeature"}}' > global.json
+          echo '{"sdk":{"version":"10.0.100-dev","rollForward":"latestFeature"}}' > global.json
 
       - name: Check version
         run: dotnet --info
@@ -26,7 +26,7 @@ jobs:
       - name: Write global.json
         shell: bash
         run: |
-          echo '{"sdk":{"version":"11.0.100-preview.4","rollForward":"latestFeature"}}' > global.json
+          echo '{"sdk":{"version":"8.0.000-preview.1","rollForward":"latestFeature"}}' > global.json
 
       - name: Check version
         run: dotnet --info
@@ -38,7 +38,7 @@ jobs:
       - name: Write global.json
         shell: bash
         run: |
-          echo '{"sdk":{"version":"10","rollForward":"latestFeature"}}' > global.json
+          echo '{"sdk":{"version":"10.0.100-alpha.1.25001.1","rollForward":"latestFeature"}}' > global.json
     
 
       - name: Check version
