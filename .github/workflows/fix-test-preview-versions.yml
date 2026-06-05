@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestPatch"}}' > global.json
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestPatch"}}' > global.json
           echo "=== global.json ==="
           cat global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestFeature"}}' > global.json
           echo "=== global.json ==="
           cat global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMinor"}}' > global.json
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestMinor"}}' > global.json
           echo "=== global.json ==="
           cat global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
@@ -67,7 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
           echo "=== global.json ==="
           cat global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
           echo "=== global.json ==="
           cat global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
@@ -104,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: |
-          echo '{"sdk": {"version": "9.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
+          echo '{"sdk": {"version": "11.0.100-preview.4.26230.115", "rollForward": "latestMajor"}}' > global.json
           echo "=== global.json ==="
           cat global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version

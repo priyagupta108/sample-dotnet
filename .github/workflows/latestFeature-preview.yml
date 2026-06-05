@@ -1,7 +1,7 @@
 name: "latestFeature"
 
 on:
-  push:
+  # push:
   workflow_dispatch:
 
 jobs:
