@@ -5,78 +5,158 @@ on:
   workflow_dispatch:
 
 jobs:
- test-preview-format:
+  test-preview-format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json
+      - name: Write global.json(10.0.100-dev)
         shell: bash
         run: |
           echo '{"sdk":{"version":"10.0.100-dev","rollForward":"latestFeature"}}' > global.json
 
       - name: Check version
         run: dotnet --info
-        
- test-preview-format-invalid:
+
+  test-preview-format-invalid:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json
+      - name: Write global.json(8.0.000-preview.1)
         shell: bash
         run: |
           echo '{"sdk":{"version":"8.0.000-preview.1","rollForward":"latestFeature"}}' > global.json
 
       - name: Check version
         run: dotnet --info
- test-partial:
+
+  test-alpha-preview:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json
+      - name: Write global.json(10.0.100-alpha.1.25001.1)
         shell: bash
         run: |
           echo '{"sdk":{"version":"10.0.100-alpha.1.25001.1","rollForward":"latestFeature"}}' > global.json
-    
 
       - name: Check version
         run: dotnet --info
 
- test-two-part:
+  test-two-part:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json
+      - name: Write global.json(10.0)
         shell: bash
         run: |
           echo '{"sdk":{"version":"10.0","rollForward":"latestFeature"}}' > global.json
-    
 
       - name: Check version
         run: dotnet --info
 
- test-wildcard:
+  test-two-part-with-prerelease:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json
+      - name: Write global.json(8.0-preview.1)
         shell: bash
         run: |
-            echo '{"sdk":{"version":"10.0.x","rollForward":"latestFeature"}}' > global.json
-      
- test-major-minor-patch:
+          echo '{"sdk":{"version":"8.0-preview.1","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-major-minor-patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json
+      - name: Write global.json(7.0.1)
         shell: bash
         run: |
-            echo '{"sdk":{"version":"7.0.0","rollForward":"latestFeature"}}' > global.json
-   
+          echo '{"sdk":{"version":"7.0.1","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-major-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json(10)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-wildcard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json(10.0.x)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.x","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-channel-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json(10.0.1xx)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"10.0.1xx","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-latest-keyword:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json(latest)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"latest","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-zero-band:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json(8.0.0)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.0","rollForward":"latestFeature"}}' > global.json
+
+      - name: Check version
+        run: dotnet --info
+
+  test-zero-band-099:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Write global.json(8.0.099)
+        shell: bash
+        run: |
+          echo '{"sdk":{"version":"8.0.099","rollForward":"latestFeature"}}' > global.json
+
       - name: Check version
         run: dotnet --info

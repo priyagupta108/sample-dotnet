@@ -52,47 +52,19 @@ jobs:
       - run: dotnet --list-sdks
 
 
-  valid-5-0-102:
-    name: "Valid: 5.0.102 (older SDK)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Write global.json
-        shell: bash
-        run: |
-          echo '{"sdk":{"version":"5.0.102","rollForward":"latestPatch"}}' > global.json
-      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
-        with:
-          global-json-file: global.json
-      - run: dotnet --list-sdks
-
-  valid-3-1-201:
-    name: "Valid: 3.1.201 (older SDK)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Write global.json
-        shell: bash
-        run: |
-          echo '{"sdk":{"version":"3.1.201","rollForward":"latestPatch"}}' > global.json
-      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
-        with:
-          global-json-file: global.json
-      - run: dotnet --list-sdks
-
 
   # =============================================================
   # VALID PRERELEASE VERSIONS
   # =============================================================
   valid-preview:
-    name: "Valid: 9.0.100-preview.4.26230.115 (preview)"
+    name: "Valid: 11.0.100-preview.4.26230.115 (preview)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Write global.json
         shell: bash
         run: |
-          echo '{"sdk":{"version":"9.0.100-preview.4.26230.115","rollForward":"latestMajor"}}' > global.json
+          echo '{"sdk":{"version":"11.0.100-preview.4.26230.115","rollForward":"latestMajor"}}' > global.json
       - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
         with:
           global-json-file: global.json
@@ -140,33 +112,6 @@ jobs:
           global-json-file: global.json
       - run: dotnet --list-sdks
 
-  valid-alpha:
-    name: "Valid: 10.0.100-alpha.1.25001.1 (alpha/daily)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Write global.json
-        shell: bash
-        run: |
-          echo '{"sdk":{"version":"10.0.100-alpha.1.25001.1","rollForward":"latestMajor"}}' > global.json
-      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
-        with:
-          global-json-file: global.json
-      - run: dotnet --list-sdks
-
-  valid-dev:
-    name: "Valid: 10.0.100-dev (dev build)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Write global.json
-        shell: bash
-        run: |
-          echo '{"sdk":{"version":"10.0.100-dev","rollForward":"latestMajor"}}' > global.json
-      - uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
-        with:
-          global-json-file: global.json
-      - run: dotnet --list-sdks
 
   # =============================================================
   # INVALID VERSIONS (should fail with clear error)

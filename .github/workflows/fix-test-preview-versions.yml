@@ -2,8 +2,7 @@ name: "Test: Preview Versions with rollForward"
 
 on:
   push:
-    branches:
-      - validate-global-json-sdk-version
+  
   workflow_dispatch:
 
 jobs:
