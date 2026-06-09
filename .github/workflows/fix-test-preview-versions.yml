@@ -1,7 +1,7 @@
 name: "Test: Preview Versions with rollForward"
 
 on:
-  push:
+  # push:
   
   workflow_dispatch:
 

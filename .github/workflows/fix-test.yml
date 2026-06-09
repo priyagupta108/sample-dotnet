@@ -1,0 +1,62 @@
+name: Test global.json sdk.version validation
+on:
+  push:
+ 
+  workflow_dispatch:
+
+jobs:
+  test-prerelease-bypass:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json (prerelease + rollForward)
+        run: |
+          echo '{"sdk":{"version":"10.0.100-preview.7.25380.108","rollForward":"latestPatch"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      # Option 1: Check the SDK is installed (not what runtime resolves to)
+      - run: dotnet --list-sdks | grep "10.0.100-preview.7"
+
+# Option 2: Check the action's output
+      - run: echo "${{ steps.setup.outputs.dotnet-version }}"
+
+# Option 3: Remove global.json before checking
+      - run: |
+          rm global.json
+          dotnet --version      
+      - name: Verify exact prerelease version installed
+        shell: pwsh
+        run: |
+          $v = dotnet --version
+          Write-Host "Installed SDK version: $v"
+          if ($v -ne "10.0.100-preview.7.25380.108") { throw "Expected exact prerelease, got $v" }
+
+  test-prerelease-bypass-without-rollforward:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Write global.json (prerelease + rollForward)
+        run: |
+          echo '{"sdk":{"version":"10.0.100-preview.7.25380.108"}}' > global.json
+      - name: Setup dotnet
+        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        with:
+          global-json-file: global.json
+      # Option 1: Check the SDK is installed (not what runtime resolves to)
+      - run: dotnet --list-sdks | grep "10.0.100-preview.7"
+
+# Option 2: Check the action's output
+      - run: echo "${{ steps.setup.outputs.dotnet-version }}"
+
+# Option 3: Remove global.json before checking
+      - run: |
+          rm global.json
+          dotnet --version      
+      - name: Verify exact prerelease version installed
+        shell: pwsh
+        run: |
+          $v = dotnet --version
+          Write-Host "Installed SDK version: $v"
+          if ($v -ne "10.0.100-preview.7.25380.108") { throw "Expected exact prerelease, got $v" }
