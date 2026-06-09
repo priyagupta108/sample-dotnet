@@ -24,10 +24,10 @@ jobs:
 # Option 2: Check the action's output
       - run: echo "${{ steps.setup.outputs.dotnet-version }}"
 
-# Option 3: Remove global.json before checking
-      - run: |
-          rm global.json
-          dotnet --version      
+# # Option 3: Remove global.json before checking
+#       - run: |
+#           rm global.json
+#           dotnet --version      
       - name: Verify exact prerelease version installed
         shell: pwsh
         run: |
@@ -54,10 +54,10 @@ jobs:
 # Option 2: Check the action's output
       - run: echo "${{ steps.setup.outputs.dotnet-version }}"
 
-# Option 3: Remove global.json before checking
-      - run: |
-          rm global.json
-          dotnet --version      
+# # Option 3: Remove global.json before checking
+#       - run: |
+#           rm global.json
+#           dotnet --version      
       - name: Verify exact prerelease version installed
         shell: pwsh
         run: |
