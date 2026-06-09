@@ -13,7 +13,8 @@ jobs:
         run: |
           echo '{"sdk":{"version":"10.0.100-preview.7.25380.108","rollForward":"latestPatch"}}' > global.json
       - name: Setup dotnet
-        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        # uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        uses: actions/setup-dotnet@v5.2.0
         with:
           global-json-file: global.json
       # Option 1: Check the SDK is installed (not what runtime resolves to)
@@ -41,7 +42,8 @@ jobs:
         run: |
           echo '{"sdk":{"version":"10.0.100-preview.7.25380.108"}}' > global.json
       - name: Setup dotnet
-        uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        # uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
+        uses: actions/setup-dotnet@v5.2.0
         with:
           global-json-file: global.json
       # Option 1: Check the SDK is installed (not what runtime resolves to)
