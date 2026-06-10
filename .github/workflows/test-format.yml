@@ -1,7 +1,7 @@
 name: Test global.json SDK version validation
 
 on:
-  # push:
+  push:
   pull_request:
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
       - name: Write global.json
         shell: bash
         run: |
-          echo '{"sdk":{"version":"8.0.100","rollForward":"latestMajor"}}' > global.json
+          echo '{"sdk":{"version":"10.0.1000","rollForward":"latestMajor"}}' > global.json
       - name: Setup dotnet
         uses: priyagupta108/setup-dotnet@validate-global-json-sdk-version
         with:
