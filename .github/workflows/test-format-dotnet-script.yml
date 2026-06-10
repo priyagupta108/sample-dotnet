@@ -10,10 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Write global.json(10.0.100-dev)
+      - name: Write global.json(10.0.1000)
         shell: bash
         run: |
-          echo '{"sdk":{"version":"10.0.100-dev","rollForward":"latestFeature"}}' > global.json
+          echo '{"sdk":{"version":"10.0.1000","rollForward":"latestFeature"}}' > global.json
 
       - name: Check version
         run: dotnet --info
