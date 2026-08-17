@@ -24,9 +24,10 @@ jobs:
 
       - name: Setup .NET SDK
         id: setup-dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           # dotnet-version: ${{ matrix.dotnet }}
-          dotnet-version: '11.0.10-preview.6.26359.118'
+          # dotnet-version: '11.0.100-preview.6.26359.118'
+          dotnet-version: 11.0.00-preview.6.x
 
      
