@@ -28,6 +28,8 @@ jobs:
         with:
           # dotnet-version: ${{ matrix.dotnet }}
           # dotnet-version: '11.0.100-preview.6.26359.118'
-          dotnet-version: 11.0.00-preview.6.x
+          # dotnet-version: 11.0.00-preview.6.x
+          dotnet-version: '11.0'
+          dotnet-quality: 'preview'
 
      
