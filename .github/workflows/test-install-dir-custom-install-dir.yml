@@ -6,12 +6,12 @@ name: "Install-dir fallback 03: DOTNET_INSTALL_DIR explicitly set"
 
 on:
   workflow_dispatch:
-  push:
     inputs:
       dotnet-version:
         description: '.NET version to install'
         required: false
         default: '8.0.x'
+  push:
 
 env:
   DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}

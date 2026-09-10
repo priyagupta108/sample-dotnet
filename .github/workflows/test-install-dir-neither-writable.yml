@@ -6,12 +6,12 @@ name: "Install-dir fallback 04: neither default nor $HOME writable"
 
 on:
   workflow_dispatch:
-  push:
     inputs:
       dotnet-version:
         description: '.NET version to install'
         required: false
         default: '8.0.x'
+  push:
 
 env:
   DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
@@ -34,12 +34,12 @@ jobs:
 
       - name: Setup .NET (actions/setup-dotnet@v6, expect failure)
         id: setup-dotnet
-        continue-on-error: true
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Report outcome
+        if: always()
         run: |
           echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
           if [ "${{ steps.setup-dotnet.outcome }}" != "failure" ]; then
@@ -66,12 +66,12 @@ jobs:
 
       - name: Setup .NET (actions/setup-dotnet@v6, expect failure)
         id: setup-dotnet
-        continue-on-error: true
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Report outcome
+        if: always()
         shell: pwsh
         run: |
           Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
@@ -104,12 +104,12 @@ jobs:
 
       - name: Setup .NET (expect warning + default dir kept)
         id: setup-dotnet
-        continue-on-error: true
         uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Verify default dir was kept
+        if: always()
         run: |
           echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
           echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
@@ -137,12 +137,12 @@ jobs:
 
       - name: Setup .NET (expect warning + default dir kept)
         id: setup-dotnet
-        continue-on-error: true
         uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Verify default dir was kept
+        if: always()
         shell: pwsh
         run: |
           Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
