@@ -40,10 +40,12 @@ jobs:
 
   baseline-v6-windows:
     runs-on: windows-latest
-    env:
-      DOTNET_INSTALL_DIR: ${{ runner.temp }}\custom-dotnet-install
     steps:
       - uses: actions/checkout@v7
+
+      - name: Set DOTNET_INSTALL_DIR to a writable custom path
+        shell: pwsh
+        run: echo "DOTNET_INSTALL_DIR=$(Join-Path $env:RUNNER_TEMP 'custom-dotnet-install')" >> $env:GITHUB_ENV
 
       - name: Setup .NET (actions/setup-dotnet@v6, no PR change)
         uses: actions/setup-dotnet@v6
@@ -132,10 +134,12 @@ jobs:
 
   pr-fallback-branch-windows:
     runs-on: windows-latest
-    env:
-      DOTNET_INSTALL_DIR: ${{ runner.temp }}\custom-dotnet-install
     steps:
       - uses: actions/checkout@v7
+
+      - name: Set DOTNET_INSTALL_DIR to a writable custom path
+        shell: pwsh
+        run: echo "DOTNET_INSTALL_DIR=$(Join-Path $env:RUNNER_TEMP 'custom-dotnet-install')" >> $env:GITHUB_ENV
 
       - name: Deny write access to C:\Program Files\dotnet
         shell: pwsh
