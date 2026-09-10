@@ -34,7 +34,7 @@ jobs:
       - name: Verify
         shell: bash
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
           dotnet --info
 
   pr-fallback-branch:
@@ -54,5 +54,5 @@ jobs:
       - name: Verify
         shell: bash
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
           dotnet --info

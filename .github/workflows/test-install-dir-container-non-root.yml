@@ -66,5 +66,9 @@ jobs:
 
       - name: Verify fallback was used
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
+          if [ "$DOTNET_ROOT" != "$HOME/.dotnet" ]; then
+            echo "::error::expected fallback to $HOME/.dotnet but got '$DOTNET_ROOT'"
+            exit 1
+          fi
           dotnet --info

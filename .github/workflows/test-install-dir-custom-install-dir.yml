@@ -31,9 +31,9 @@ jobs:
 
       - name: Verify custom install dir was used
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
-          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
-            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
+          if [ "$DOTNET_ROOT" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_ROOT'"
             exit 1
           fi
           dotnet --info
@@ -55,10 +55,10 @@ jobs:
       - name: Verify custom install dir was used
         shell: pwsh
         run: |
-          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+          Write-Host "DOTNET_ROOT=$env:DOTNET_ROOT"
           $expected = Join-Path $env:RUNNER_TEMP "custom-dotnet-install"
-          if ($env:DOTNET_INSTALL_DIR -ne $expected) {
-            Write-Error "expected $expected but got '$env:DOTNET_INSTALL_DIR'"
+          if ($env:DOTNET_ROOT -ne $expected) {
+            Write-Error "expected $expected but got '$env:DOTNET_ROOT'"
             exit 1
           }
           dotnet --info
@@ -77,9 +77,9 @@ jobs:
 
       - name: Verify custom install dir was used
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
-          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
-            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
+          if [ "$DOTNET_ROOT" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_ROOT'"
             exit 1
           fi
           dotnet --info
@@ -98,9 +98,9 @@ jobs:
 
       - name: Verify custom install dir was used
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
-          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
-            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
+          if [ "$DOTNET_ROOT" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_ROOT'"
             exit 1
           fi
           dotnet --info
@@ -125,9 +125,9 @@ jobs:
 
       - name: Verify custom install dir was used
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
-          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
-            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
+          if [ "$DOTNET_ROOT" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_ROOT'"
             exit 1
           fi
           dotnet --info
@@ -155,16 +155,13 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Verify custom install dir was used
-        if: always()
         shell: pwsh
         run: |
-          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
-          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
-          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          Write-Host "DOTNET_ROOT=$env:DOTNET_ROOT"
           Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
           $expected = Join-Path $env:RUNNER_TEMP "custom-dotnet-install"
-          if ($resolved -ne $expected) {
-            Write-Error "expected $expected but got '$resolved'"
+          if ($env:DOTNET_ROOT -ne $expected) {
+            Write-Error "expected $expected but got '$env:DOTNET_ROOT'"
             exit 1
           }
           dotnet --info

@@ -99,7 +99,7 @@ jobs:
         if: always()
         run: |
           echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
 
   pr-fallback-branch-linux:
     runs-on: ubuntu-latest
@@ -120,11 +120,9 @@ jobs:
       - name: Verify fallback was used
         if: always()
         run: |
-          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
-          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
-          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
-          if [ "$resolved" != "$HOME/.dotnet" ]; then
-            echo "::error::expected fallback to $HOME/.dotnet but got '$resolved'"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
+          if [ "$DOTNET_ROOT" != "$HOME/.dotnet" ]; then
+            echo "::error::expected fallback to $HOME/.dotnet but got '$DOTNET_ROOT'"
             exit 1
           fi
           dotnet --info
@@ -150,12 +148,10 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
-          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
-          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          Write-Host "DOTNET_ROOT=$env:DOTNET_ROOT"
           $expected = Join-Path $env:USERPROFILE ".dotnet"
-          if ($resolved -ne $expected) {
-            Write-Error "expected fallback to $expected but got '$resolved'"
+          if ($env:DOTNET_ROOT -ne $expected) {
+            Write-Error "expected fallback to $expected but got '$env:DOTNET_ROOT'"
             exit 1
           }
           dotnet --info

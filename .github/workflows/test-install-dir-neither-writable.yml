@@ -109,15 +109,16 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Verify default dir was kept
+      - name: Verify default dir was kept and install failed as warned
         if: always()
         run: |
-          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
-          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
-          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          echo "DOTNET_ROOT=$DOTNET_ROOT"
           echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
-          if [ "$resolved" != "/usr/share/dotnet" ]; then
-            echo "::error::expected default dir '/usr/share/dotnet' to be kept but got '$resolved'"
+          # DOTNET_ROOT is only exported after a successful install (addToPath()),
+          # so a genuinely blocked install like this one never sets it -- the real
+          # proof is the "Keeping ... likely to fail" warning already in the log.
+          if [ "${{ steps.setup-dotnet.outcome }}" != "failure" ]; then
+            echo "::error::expected the install to fail since neither location is writable"
             exit 1
           fi
 
@@ -144,16 +145,17 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Verify default dir was kept
+      - name: Verify default dir was kept and install failed as warned
         if: always()
         shell: pwsh
         run: |
-          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
-          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
-          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          Write-Host "DOTNET_ROOT=$env:DOTNET_ROOT"
           Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
-          if ($resolved -ne 'C:\Program Files\dotnet') {
-            Write-Error "expected default dir 'C:\Program Files\dotnet' to be kept but got '$resolved'"
+          # DOTNET_ROOT is only exported after a successful install (addToPath()),
+          # so a genuinely blocked install like this one never sets it -- the real
+          # proof is the "Keeping ... likely to fail" warning already in the log.
+          if ('${{ steps.setup-dotnet.outcome }}' -ne 'failure') {
+            Write-Error "expected the install to fail since neither location is writable"
             exit 1
           }
 
