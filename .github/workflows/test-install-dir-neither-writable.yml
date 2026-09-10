@@ -4,6 +4,7 @@ name: "Install-dir fallback 04: neither default nor $HOME writable"
 # writable, the PR branch keeps the default dir and warns instead of crashing
 # outright. actions/setup-dotnet@v6 (no fix) has no fallback and just fails.
 
+
 on:
   workflow_dispatch:
     inputs:
