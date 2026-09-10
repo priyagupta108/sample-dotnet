@@ -1,0 +1,124 @@
+name: "Install-dir fallback: default dir missing but parent writable"
+
+# PR #5 edge case (unit test: "should probe the nearest existing parent when
+# the directory is missing"): a fresh self-hosted runner with no dotnet
+# pre-cached has no /usr/share/dotnet at all yet. isWritableLocation() must
+# walk up to the nearest existing ancestor (/usr/share), probe there, and
+# still resolve to the default path -- NOT unnecessarily fall back to $HOME.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET version to install'
+        required: false
+        default: '8.0.x'
+  push:
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  baseline-v6-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Remove /usr/share/dotnet entirely (parent stays writable)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          ls -ld /usr/share
+
+      - name: Setup .NET (actions/setup-dotnet@v6, no PR change)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify default dir was used
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          if [ "$DOTNET_INSTALL_DIR" != "/usr/share/dotnet" ]; then
+            echo "::error::expected default dir '/usr/share/dotnet' but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          dotnet --info
+
+  pr-fallback-branch-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Remove /usr/share/dotnet entirely (parent stays writable)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          ls -ld /usr/share
+
+      - name: Setup .NET (expect default dir to be used, no unnecessary fallback)
+        id: setup-dotnet
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify default dir was used, not $HOME/.dotnet
+        if: always()
+        run: |
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
+          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          if [ "$resolved" != "/usr/share/dotnet" ]; then
+            echo "::error::expected default dir '/usr/share/dotnet' but got '$resolved'"
+            exit 1
+          fi
+          dotnet --info
+
+  baseline-v6-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Remove C:\Program Files\dotnet entirely (parent stays writable)
+        shell: pwsh
+        run: Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+
+      - name: Setup .NET (actions/setup-dotnet@v6, no PR change)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify default dir was used
+        shell: pwsh
+        run: |
+          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+          if ($env:DOTNET_INSTALL_DIR -ne 'C:\Program Files\dotnet') {
+            Write-Error "expected default dir 'C:\Program Files\dotnet' but got '$env:DOTNET_INSTALL_DIR'"
+            exit 1
+          }
+          dotnet --info
+
+  pr-fallback-branch-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Remove C:\Program Files\dotnet entirely (parent stays writable)
+        shell: pwsh
+        run: Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+
+      - name: Setup .NET (expect default dir to be used, no unnecessary fallback)
+        id: setup-dotnet
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify default dir was used, not %USERPROFILE%\.dotnet
+        if: always()
+        shell: pwsh
+        run: |
+          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
+          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
+          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          if ($resolved -ne 'C:\Program Files\dotnet') {
+            Write-Error "expected default dir 'C:\Program Files\dotnet' but got '$resolved'"
+            exit 1
+          }
+          dotnet --info

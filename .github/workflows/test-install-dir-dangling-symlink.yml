@@ -1,0 +1,139 @@
+name: "Install-dir fallback: dangling symlink at default location"
+
+# PR #5 edge case (unit test: "should reject a dangling symlink instead of
+# probing its writable parent"): if the default install dir path is itself a
+# broken symlink, isWritableLocation() must reject it immediately rather than
+# walking up to the (possibly writable) parent directory and wrongly reporting
+# success. actions/setup-dotnet@v6 has no such check and just fails trying to
+# create files under the dangling link.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET version to install'
+        required: false
+        default: '8.0.x'
+  push:
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  baseline-v6-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Replace /usr/share/dotnet with a dangling symlink
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo ln -s /nonexistent-target-for-symlink-test /usr/share/dotnet
+          # parent is made world-writable to prove the failure isn't just a permissions issue
+          sudo chmod 777 /usr/share
+          ls -la /usr/share/dotnet
+
+      - name: Setup .NET (actions/setup-dotnet@v6, expect failure)
+        id: setup-dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Report outcome
+        if: always()
+        run: |
+          echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if [ "${{ steps.setup-dotnet.outcome }}" != "failure" ]; then
+            echo "::error::expected actions/setup-dotnet@v6 to fail against a dangling symlink"
+            exit 1
+          fi
+
+  pr-fallback-branch-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Replace /usr/share/dotnet with a dangling symlink
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo ln -s /nonexistent-target-for-symlink-test /usr/share/dotnet
+          # parent is made world-writable to prove the walk-up-to-parent branch is NOT taken
+          sudo chmod 777 /usr/share
+          ls -la /usr/share/dotnet
+
+      - name: Setup .NET (expect fallback to $HOME/.dotnet, not the writable parent)
+        id: setup-dotnet
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify fallback was used
+        if: always()
+        run: |
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
+          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          if [ "$resolved" != "$HOME/.dotnet" ]; then
+            echo "::error::expected fallback to $HOME/.dotnet but got '$resolved'"
+            exit 1
+          fi
+          dotnet --info
+
+  baseline-v6-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Replace C:\Program Files\dotnet with a dangling symlink
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+          New-Item -ItemType SymbolicLink -Path "C:\Program Files\dotnet" -Target "C:\nonexistent-target-for-symlink-test" | Out-Null
+          Get-Item "C:\Program Files\dotnet" | Format-List *
+
+      - name: Setup .NET (actions/setup-dotnet@v6, expect failure)
+        id: setup-dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Report outcome
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if ('${{ steps.setup-dotnet.outcome }}' -ne 'failure') {
+            Write-Error "expected actions/setup-dotnet@v6 to fail against a dangling symlink"
+            exit 1
+          }
+
+  pr-fallback-branch-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Replace C:\Program Files\dotnet with a dangling symlink
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force "C:\Program Files\dotnet" -ErrorAction SilentlyContinue
+          New-Item -ItemType SymbolicLink -Path "C:\Program Files\dotnet" -Target "C:\nonexistent-target-for-symlink-test" | Out-Null
+
+      - name: Setup .NET (expect fallback to %USERPROFILE%\.dotnet)
+        id: setup-dotnet
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify fallback was used
+        if: always()
+        shell: pwsh
+        run: |
+          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
+          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
+          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          $expected = Join-Path $env:USERPROFILE ".dotnet"
+          if ($resolved -ne $expected) {
+            Write-Error "expected fallback to $expected but got '$resolved'"
+            exit 1
+          }
+          dotnet --info
