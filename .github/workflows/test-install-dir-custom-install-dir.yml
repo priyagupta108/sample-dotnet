@@ -1,0 +1,163 @@
+name: "Install-dir fallback 03: DOTNET_INSTALL_DIR explicitly set"
+
+# Issue #518 / PR #5: when DOTNET_INSTALL_DIR is set, it must always be used
+# as-is, with no writability probing. This already works on v6 (existing
+# behavior); the PR branch must preserve it while the default dir is unwritable.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET version to install'
+        required: false
+        default: '8.0.x'
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  baseline-v6-linux:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_INSTALL_DIR: /tmp/custom-dotnet-install
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (actions/setup-dotnet@v6, no PR change)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify custom install dir was used
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          dotnet --info
+
+  baseline-v6-windows:
+    runs-on: windows-latest
+    env:
+      DOTNET_INSTALL_DIR: 'D:\custom-dotnet-install'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (actions/setup-dotnet@v6, no PR change)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify custom install dir was used
+        shell: pwsh
+        run: |
+          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+          if ($env:DOTNET_INSTALL_DIR -ne 'D:\custom-dotnet-install') {
+            Write-Error "expected D:\custom-dotnet-install but got '$env:DOTNET_INSTALL_DIR'"
+            exit 1
+          }
+          dotnet --info
+
+  baseline-v6-macos:
+    runs-on: macos-latest
+    env:
+      DOTNET_INSTALL_DIR: /tmp/custom-dotnet-install
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (actions/setup-dotnet@v6, no PR change)
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify custom install dir was used
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          dotnet --info
+
+  pr-fallback-branch-macos:
+    runs-on: macos-latest
+    env:
+      DOTNET_INSTALL_DIR: /tmp/custom-dotnet-install
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (expect DOTNET_INSTALL_DIR honored, no probing)
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify custom install dir was used
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          dotnet --info
+
+  pr-fallback-branch-linux:
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_INSTALL_DIR: /tmp/custom-dotnet-install
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Make /usr/share/dotnet unwritable
+        run: |
+          sudo mkdir -p /usr/share/dotnet
+          sudo chown root:root /usr/share/dotnet
+          sudo chmod 555 /usr/share/dotnet
+
+      - name: Setup .NET (expect DOTNET_INSTALL_DIR honored, no probing)
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify custom install dir was used
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          if [ "$DOTNET_INSTALL_DIR" != "/tmp/custom-dotnet-install" ]; then
+            echo "::error::expected /tmp/custom-dotnet-install but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          dotnet --info
+
+  pr-fallback-branch-windows:
+    runs-on: windows-latest
+    env:
+      DOTNET_INSTALL_DIR: 'D:\custom-dotnet-install'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Deny write access to C:\Program Files\dotnet
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "C:\Program Files\dotnet" | Out-Null
+          icacls "C:\Program Files\dotnet" /inheritance:r
+          icacls "C:\Program Files\dotnet" /deny "$env:USERNAME`:(OI)(CI)W"
+
+      - name: Setup .NET (expect DOTNET_INSTALL_DIR honored, no probing)
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify custom install dir was used
+        shell: pwsh
+        run: |
+          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+          if ($env:DOTNET_INSTALL_DIR -ne 'D:\custom-dotnet-install') {
+            Write-Error "expected D:\custom-dotnet-install but got '$env:DOTNET_INSTALL_DIR'"
+            exit 1
+          }
+          dotnet --info
+
+      - name: Restore permissions on C:\Program Files\dotnet
+        if: always()
+        shell: pwsh
+        run: icacls "C:\Program Files\dotnet" /remove:d "$env:USERNAME"

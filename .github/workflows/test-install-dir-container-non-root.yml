@@ -1,0 +1,69 @@
+name: "Install-dir fallback 05: container running as non-root"
+
+# Reproduces a realistic self-hosted-runner / container scenario from issue
+# #518: job runs as a non-root user so /usr/share/dotnet is not writable.
+# actions/setup-dotnet@v6 (no fix) is expected to fail; the PR branch should
+# fall back to $HOME/.dotnet.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET version to install'
+        required: false
+        default: '8.0.x'
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  baseline-v6:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+      options: --user 1001:1001
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Show effective user and default dir permissions
+        run: |
+          id
+          ls -ld /usr/share/dotnet || true
+
+      - name: Setup .NET (actions/setup-dotnet@v6, expect permission failure)
+        id: setup-dotnet
+        continue-on-error: true
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Report outcome
+        run: |
+          echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if [ "${{ steps.setup-dotnet.outcome }}" != "failure" ]; then
+            echo "::error::expected actions/setup-dotnet@v6 to fail as non-root against /usr/share/dotnet"
+            exit 1
+          fi
+
+  pr-fallback-branch:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+      options: --user 1001:1001
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Show effective user and default dir permissions
+        run: |
+          id
+          ls -ld /usr/share/dotnet || true
+
+      - name: Setup .NET (expect fallback to $HOME/.dotnet)
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify fallback was used
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          dotnet --info

@@ -1,0 +1,159 @@
+name: "Install-dir fallback 04: neither default nor $HOME writable"
+
+# Issue #518 edge case: if neither the platform default nor $HOME/.dotnet is
+# writable, the PR branch keeps the default dir and warns instead of crashing
+# outright. actions/setup-dotnet@v6 (no fix) has no fallback and just fails.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET version to install'
+        required: false
+        default: '8.0.x'
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  baseline-v6-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Make default dir and $HOME/.dotnet both unwritable
+        run: |
+          sudo mkdir -p /usr/share/dotnet
+          sudo chown root:root /usr/share/dotnet
+          sudo chmod 555 /usr/share/dotnet
+
+          sudo mkdir -p "$HOME/.dotnet"
+          sudo chown root:root "$HOME/.dotnet"
+          sudo chmod 555 "$HOME/.dotnet"
+
+      - name: Setup .NET (actions/setup-dotnet@v6, expect failure)
+        id: setup-dotnet
+        continue-on-error: true
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Report outcome
+        run: |
+          echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if [ "${{ steps.setup-dotnet.outcome }}" != "failure" ]; then
+            echo "::error::expected actions/setup-dotnet@v6 to fail when neither location is writable"
+            exit 1
+          fi
+
+  baseline-v6-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Make default dir and %USERPROFILE%\.dotnet both unwritable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "C:\Program Files\dotnet" | Out-Null
+          icacls "C:\Program Files\dotnet" /inheritance:r
+          icacls "C:\Program Files\dotnet" /deny "$env:USERNAME`:(OI)(CI)W"
+
+          $homeDotnet = Join-Path $env:USERPROFILE ".dotnet"
+          New-Item -ItemType Directory -Force -Path $homeDotnet | Out-Null
+          icacls $homeDotnet /inheritance:r
+          icacls $homeDotnet /deny "$env:USERNAME`:(OI)(CI)W"
+
+      - name: Setup .NET (actions/setup-dotnet@v6, expect failure)
+        id: setup-dotnet
+        continue-on-error: true
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Report outcome
+        shell: pwsh
+        run: |
+          Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if ('${{ steps.setup-dotnet.outcome }}' -ne 'failure') {
+            Write-Error "expected actions/setup-dotnet@v6 to fail when neither location is writable"
+            exit 1
+          }
+
+      - name: Restore permissions
+        if: always()
+        shell: pwsh
+        run: |
+          icacls "C:\Program Files\dotnet" /remove:d "$env:USERNAME"
+          icacls (Join-Path $env:USERPROFILE ".dotnet") /remove:d "$env:USERNAME"
+
+  pr-fallback-branch-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Make default dir and $HOME/.dotnet both unwritable
+        run: |
+          sudo mkdir -p /usr/share/dotnet
+          sudo chown root:root /usr/share/dotnet
+          sudo chmod 555 /usr/share/dotnet
+
+          sudo mkdir -p "$HOME/.dotnet"
+          sudo chown root:root "$HOME/.dotnet"
+          sudo chmod 555 "$HOME/.dotnet"
+
+      - name: Setup .NET (expect warning + default dir kept)
+        id: setup-dotnet
+        continue-on-error: true
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify default dir was kept
+        run: |
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if [ "$DOTNET_INSTALL_DIR" != "/usr/share/dotnet" ]; then
+            echo "::error::expected default dir '/usr/share/dotnet' to be kept but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+
+  pr-fallback-branch-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Make default dir and %USERPROFILE%\.dotnet both unwritable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "C:\Program Files\dotnet" | Out-Null
+          icacls "C:\Program Files\dotnet" /inheritance:r
+          icacls "C:\Program Files\dotnet" /deny "$env:USERNAME`:(OI)(CI)W"
+
+          $homeDotnet = Join-Path $env:USERPROFILE ".dotnet"
+          New-Item -ItemType Directory -Force -Path $homeDotnet | Out-Null
+          icacls $homeDotnet /inheritance:r
+          icacls $homeDotnet /deny "$env:USERNAME`:(OI)(CI)W"
+
+      - name: Setup .NET (expect warning + default dir kept)
+        id: setup-dotnet
+        continue-on-error: true
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify default dir was kept
+        shell: pwsh
+        run: |
+          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+          Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          if ($env:DOTNET_INSTALL_DIR -ne 'C:\Program Files\dotnet') {
+            Write-Error "expected default dir 'C:\Program Files\dotnet' to be kept but got '$env:DOTNET_INSTALL_DIR'"
+            exit 1
+          }
+
+      - name: Restore permissions
+        if: always()
+        shell: pwsh
+        run: |
+          icacls "C:\Program Files\dotnet" /remove:d "$env:USERNAME"
+          icacls (Join-Path $env:USERPROFILE ".dotnet") /remove:d "$env:USERNAME"

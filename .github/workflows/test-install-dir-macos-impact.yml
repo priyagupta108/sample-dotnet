@@ -1,0 +1,117 @@
+name: "Install-dir fallback: is macOS affected?"
+
+# Question: does PR #5 (v-priyagupta108/setup-dotnet@install-dir-writable-fallback)
+# change behavior on macOS runners?
+#
+# Answer it comes down to two facts about the PR diff:
+#   - old default:  path.join(process.env['HOME'], '.dotnet')
+#   - new default:  homeInstallPath() ?? path.join(process.env['HOME'], '.dotnet')
+#     where homeInstallPath() = path.join(os.homedir(), '.dotnet')
+#
+# So macOS is affected ONLY in the corner case where $HOME differs from what
+# os.homedir() reports (os.homedir() wins on the PR branch, $HOME wins on v6).
+# When $HOME and os.homedir() agree (the normal case), and when the default
+# dir's writability doesn't change, both versions behave identically.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dotnet-version:
+        description: '.NET version to install'
+        required: false
+        default: '8.0.x'
+
+env:
+  DOTNET_VERSION: ${{ inputs.dotnet-version || '8.0.x' }}
+
+jobs:
+  # Normal case: HOME matches os.homedir() and it's writable -> expect both
+  # versions to resolve to the exact same install dir.
+  same-behavior-normal-home:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline-v6, pr-fallback-branch]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup .NET (actions/setup-dotnet@v6)
+        if: matrix.variant == 'baseline-v6'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup .NET (PR branch install-dir-writable-fallback)
+        if: matrix.variant == 'pr-fallback-branch'
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Verify install dir matches the unchanged default ($HOME/.dotnet)
+        run: |
+          echo "variant=${{ matrix.variant }}"
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          if [ "$DOTNET_INSTALL_DIR" != "$HOME/.dotnet" ]; then
+            echo "::error::expected $HOME/.dotnet but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          dotnet --info
+
+  # Corner case: HOME env var points somewhere other than the real home
+  # directory. v6 trusts $HOME as-is; the PR branch resolves via os.homedir()
+  # instead, so the two versions are expected to diverge here.
+  divergent-behavior-when-home-env-overridden:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline-v6, pr-fallback-branch]
+    runs-on: macos-latest
+    env:
+      HOME: /tmp/fake-home-for-dotnet-test
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create the overridden HOME so it's writable
+        run: mkdir -p "$HOME"
+
+      - name: Setup .NET (actions/setup-dotnet@v6)
+        if: matrix.variant == 'baseline-v6'
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup .NET (PR branch install-dir-writable-fallback)
+        if: matrix.variant == 'pr-fallback-branch'
+        uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Report resolved install dir and real os.homedir()
+        run: |
+          real_home=$(node -e "console.log(require('os').homedir())")
+          echo "variant=${{ matrix.variant }}"
+          echo "HOME env=$HOME"
+          echo "os.homedir()=$real_home"
+          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+
+      - name: Verify v6 uses the overridden $HOME
+        if: matrix.variant == 'baseline-v6'
+        run: |
+          if [ "$DOTNET_INSTALL_DIR" != "$HOME/.dotnet" ]; then
+            echo "::error::expected v6 to use overridden HOME '$HOME/.dotnet' but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+
+      - name: Verify PR branch uses the real os.homedir(), not the overridden $HOME
+        if: matrix.variant == 'pr-fallback-branch'
+        run: |
+          real_home=$(node -e "console.log(require('os').homedir())")
+          if [ "$DOTNET_INSTALL_DIR" != "$real_home/.dotnet" ]; then
+            echo "::error::expected PR branch to use os.homedir() '$real_home/.dotnet' but got '$DOTNET_INSTALL_DIR'"
+            exit 1
+          fi
+          if [ "$DOTNET_INSTALL_DIR" == "$HOME/.dotnet" ]; then
+            echo "::error::PR branch unexpectedly matched the overridden HOME env var"
+            exit 1
+          fi
