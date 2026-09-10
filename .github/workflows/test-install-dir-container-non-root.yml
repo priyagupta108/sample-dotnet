@@ -7,6 +7,7 @@ name: "Install-dir fallback 05: container running as non-root"
 
 on:
   workflow_dispatch:
+  push:
     inputs:
       dotnet-version:
         description: '.NET version to install'

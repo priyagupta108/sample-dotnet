@@ -6,6 +6,7 @@ name: "Install-dir fallback 04: neither default nor $HOME writable"
 
 on:
   workflow_dispatch:
+  push:
     inputs:
       dotnet-version:
         description: '.NET version to install'

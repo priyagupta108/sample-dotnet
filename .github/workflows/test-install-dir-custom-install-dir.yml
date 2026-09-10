@@ -6,6 +6,7 @@ name: "Install-dir fallback 03: DOTNET_INSTALL_DIR explicitly set"
 
 on:
   workflow_dispatch:
+  push:
     inputs:
       dotnet-version:
         description: '.NET version to install'

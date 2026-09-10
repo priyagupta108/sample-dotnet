@@ -6,6 +6,7 @@ name: "Install-dir fallback 01: default location writable"
 
 on:
   workflow_dispatch:
+  push:
     inputs:
       dotnet-version:
         description: '.NET version to install'
