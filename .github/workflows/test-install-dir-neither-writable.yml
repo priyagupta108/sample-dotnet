@@ -111,10 +111,12 @@ jobs:
       - name: Verify default dir was kept
         if: always()
         run: |
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
+          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
           echo "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
-          if [ "$DOTNET_INSTALL_DIR" != "/usr/share/dotnet" ]; then
-            echo "::error::expected default dir '/usr/share/dotnet' to be kept but got '$DOTNET_INSTALL_DIR'"
+          if [ "$resolved" != "/usr/share/dotnet" ]; then
+            echo "::error::expected default dir '/usr/share/dotnet' to be kept but got '$resolved'"
             exit 1
           fi
 
@@ -145,10 +147,12 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
+          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
+          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
           Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
-          if ($env:DOTNET_INSTALL_DIR -ne 'C:\Program Files\dotnet') {
-            Write-Error "expected default dir 'C:\Program Files\dotnet' to be kept but got '$env:DOTNET_INSTALL_DIR'"
+          if ($resolved -ne 'C:\Program Files\dotnet') {
+            Write-Error "expected default dir 'C:\Program Files\dotnet' to be kept but got '$resolved'"
             exit 1
           }
 

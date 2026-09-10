@@ -50,11 +50,14 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Verify install dir matches the unchanged default ($HOME/.dotnet)
+        if: always()
         run: |
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
           echo "variant=${{ matrix.variant }}"
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
-          if [ "$DOTNET_INSTALL_DIR" != "$HOME/.dotnet" ]; then
-            echo "::error::expected $HOME/.dotnet but got '$DOTNET_INSTALL_DIR'"
+          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          if [ "$resolved" != "$HOME/.dotnet" ]; then
+            echo "::error::expected $HOME/.dotnet but got '$resolved'"
             exit 1
           fi
           dotnet --info
@@ -89,30 +92,35 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Report resolved install dir and real os.homedir()
+        if: always()
         run: |
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
           real_home=$(node -e "console.log(require('os').homedir())")
           echo "variant=${{ matrix.variant }}"
           echo "HOME env=$HOME"
           echo "os.homedir()=$real_home"
-          echo "DOTNET_INSTALL_DIR=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_INSTALL_DIR (live env)=$DOTNET_INSTALL_DIR"
+          echo "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
 
       - name: Verify v6 uses the overridden $HOME
-        if: matrix.variant == 'baseline-v6'
+        if: always() && matrix.variant == 'baseline-v6'
         run: |
-          if [ "$DOTNET_INSTALL_DIR" != "$HOME/.dotnet" ]; then
-            echo "::error::expected v6 to use overridden HOME '$HOME/.dotnet' but got '$DOTNET_INSTALL_DIR'"
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
+          if [ "$resolved" != "$HOME/.dotnet" ]; then
+            echo "::error::expected v6 to use overridden HOME '$HOME/.dotnet' but got '$resolved'"
             exit 1
           fi
 
       - name: Verify PR branch uses the real os.homedir(), not the overridden $HOME
-        if: matrix.variant == 'pr-fallback-branch'
+        if: always() && matrix.variant == 'pr-fallback-branch'
         run: |
+          resolved=$(grep '^DOTNET_INSTALL_DIR=' "$GITHUB_ENV" | tail -1 | cut -d= -f2-)
           real_home=$(node -e "console.log(require('os').homedir())")
-          if [ "$DOTNET_INSTALL_DIR" != "$real_home/.dotnet" ]; then
-            echo "::error::expected PR branch to use os.homedir() '$real_home/.dotnet' but got '$DOTNET_INSTALL_DIR'"
+          if [ "$resolved" != "$real_home/.dotnet" ]; then
+            echo "::error::expected PR branch to use os.homedir() '$real_home/.dotnet' but got '$resolved'"
             exit 1
           fi
-          if [ "$DOTNET_INSTALL_DIR" == "$HOME/.dotnet" ]; then
+          if [ "$resolved" == "$HOME/.dotnet" ]; then
             echo "::error::PR branch unexpectedly matched the overridden HOME env var"
             exit 1
           fi

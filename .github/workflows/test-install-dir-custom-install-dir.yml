@@ -41,7 +41,7 @@ jobs:
   baseline-v6-windows:
     runs-on: windows-latest
     env:
-      DOTNET_INSTALL_DIR: 'D:\custom-dotnet-install'
+      DOTNET_INSTALL_DIR: ${{ runner.temp }}\custom-dotnet-install
     steps:
       - uses: actions/checkout@v7
 
@@ -54,8 +54,9 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
-          if ($env:DOTNET_INSTALL_DIR -ne 'D:\custom-dotnet-install') {
-            Write-Error "expected D:\custom-dotnet-install but got '$env:DOTNET_INSTALL_DIR'"
+          $expected = Join-Path $env:RUNNER_TEMP "custom-dotnet-install"
+          if ($env:DOTNET_INSTALL_DIR -ne $expected) {
+            Write-Error "expected $expected but got '$env:DOTNET_INSTALL_DIR'"
             exit 1
           }
           dotnet --info
@@ -132,7 +133,7 @@ jobs:
   pr-fallback-branch-windows:
     runs-on: windows-latest
     env:
-      DOTNET_INSTALL_DIR: 'D:\custom-dotnet-install'
+      DOTNET_INSTALL_DIR: ${{ runner.temp }}\custom-dotnet-install
     steps:
       - uses: actions/checkout@v7
 
@@ -144,16 +145,22 @@ jobs:
           icacls "C:\Program Files\dotnet" /deny "$env:USERNAME`:(OI)(CI)W"
 
       - name: Setup .NET (expect DOTNET_INSTALL_DIR honored, no probing)
+        id: setup-dotnet
         uses: v-priyagupta108/setup-dotnet@install-dir-writable-fallback
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Verify custom install dir was used
+        if: always()
         shell: pwsh
         run: |
-          Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
-          if ($env:DOTNET_INSTALL_DIR -ne 'D:\custom-dotnet-install') {
-            Write-Error "expected D:\custom-dotnet-install but got '$env:DOTNET_INSTALL_DIR'"
+          $resolved = (Get-Content $env:GITHUB_ENV | Select-String '^DOTNET_INSTALL_DIR=').Line -replace '^DOTNET_INSTALL_DIR=', ''
+          Write-Host "DOTNET_INSTALL_DIR (live env)=$env:DOTNET_INSTALL_DIR"
+          Write-Host "DOTNET_INSTALL_DIR (from GITHUB_ENV)=$resolved"
+          Write-Host "setup-dotnet outcome: ${{ steps.setup-dotnet.outcome }}"
+          $expected = Join-Path $env:RUNNER_TEMP "custom-dotnet-install"
+          if ($resolved -ne $expected) {
+            Write-Error "expected $expected but got '$resolved'"
             exit 1
           }
           dotnet --info
